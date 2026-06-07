@@ -1,0 +1,304 @@
+<script lang="ts">
+  import type { FileEntry } from '../types';
+
+  let {
+    entries = [] as FileEntry[],
+    selectedPath = null as string | null,
+    depth = 0,
+    onSelect = (_path: string) => {},
+  }: {
+    entries: FileEntry[];
+    selectedPath?: string | null;
+    depth?: number;
+    onSelect?: (path: string) => void;
+  } = $props();
+
+  let collapsedDirs = $state<Set<string>>(new Set());
+  let selectedPaths = $state<Set<string>>(new Set());
+  let contextMenuTarget = $state<{ x: number; y: number; entry: FileEntry } | null>(null);
+
+  function toggleDir(path: string) {
+    const next = new Set(collapsedDirs);
+    if (next.has(path)) {
+      next.delete(path);
+    } else {
+      next.add(path);
+    }
+    collapsedDirs = next;
+  }
+
+  function handleSelect(path: string, e: MouseEvent) {
+    if (e.metaKey || e.ctrlKey) {
+      const next = new Set(selectedPaths);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      selectedPaths = next;
+    } else {
+      selectedPaths = new Set([path]);
+    }
+    onSelect(path);
+  }
+
+  function handleContextMenu(e: MouseEvent, entry: FileEntry) {
+    e.preventDefault();
+    contextMenuTarget = { x: e.clientX, y: e.clientY, entry };
+  }
+
+  function closeContextMenu() {
+    contextMenuTarget = null;
+  }
+
+  function getIcon(entry: FileEntry): string {
+    if (entry.is_dir) {
+      return collapsedDirs.has(entry.path) ? '📁' : '📂';
+    }
+    const ext = entry.extension || entry.name.split('.').pop()?.toLowerCase() || '';
+    const iconMap: Record<string, string> = {
+      md: '📝',
+      txt: '📄',
+      js: '📜',
+      ts: '📘',
+      json: '📋',
+      yaml: '📋',
+      yml: '📋',
+      css: '🎨',
+      html: '🌐',
+      svg: '🖼️',
+      png: '🖼️',
+      jpg: '🖼️',
+      jpeg: '🖼️',
+      gif: '🖼️',
+      wasm: '⚙️',
+      toml: '📋',
+      rs: '🦀',
+      py: '🐍',
+    };
+    return iconMap[ext] || '📄';
+  }
+
+  function handleRename(entry: FileEntry) {
+    contextMenuTarget = null;
+    const newName = prompt('Rename to:', entry.name);
+    if (newName && newName !== entry.name) {
+      const parts = entry.path.split('/');
+      parts[parts.length - 1] = newName;
+      const newPath = parts.join('/');
+      window.dispatchEvent(new CustomEvent('file:rename', { detail: { oldPath: entry.path, newPath } }));
+    }
+  }
+
+  function handleDeleteEntry(entry: FileEntry) {
+    contextMenuTarget = null;
+    if (confirm(`Delete "${entry.name}"?`)) {
+      window.dispatchEvent(new CustomEvent('file:delete', { detail: { path: entry.path } }));
+    }
+  }
+
+  function handleDuplicate(entry: FileEntry) {
+    contextMenuTarget = null;
+    window.dispatchEvent(new CustomEvent('file:duplicate', { detail: { path: entry.path } }));
+  }
+
+  function handleCopyPath(entry: FileEntry) {
+    contextMenuTarget = null;
+    navigator.clipboard.writeText(entry.path);
+  }
+
+  function handleDragStart(e: DragEvent, entry: FileEntry) {
+    e.dataTransfer?.setData('text/plain', entry.path);
+    e.dataTransfer!.effectAllowed = 'move';
+  }
+
+  function handleDrop(e: DragEvent, targetDir: FileEntry) {
+    e.preventDefault();
+    if (!targetDir.is_dir) return;
+    const sourcePath = e.dataTransfer?.getData('text/plain');
+    if (sourcePath) {
+      const name = sourcePath.split('/').pop();
+      window.dispatchEvent(new CustomEvent('file:move', {
+        detail: { oldPath: sourcePath, newPath: `${targetDir.path}/${name}` },
+      }));
+    }
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  }
+</script>
+
+{#each entries as entry (entry.path)}
+  {#if entry.is_dir}
+    <div class="tree-item">
+      <button
+        class="tree-row dir-row"
+        class:selected={selectedPath === entry.path || selectedPaths.has(entry.path)}
+        class:depth={depth}
+        onclick={(e) => { toggleDir(entry.path); handleSelect(entry.path, e); }}
+        oncontextmenu={(e) => handleContextMenu(e, entry)}
+        ondragover={handleDragOver}
+        ondrop={(e) => handleDrop(e, entry)}
+        draggable="true"
+        ondragstart={(e) => handleDragStart(e, entry)}
+      >
+        <span class="chevron" class:collapsed={collapsedDirs.has(entry.path)}>
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="file-icon">{getIcon(entry)}</span>
+        <span class="file-name truncate">{entry.name}</span>
+      </button>
+      {#if !collapsedDirs.has(entry.path) && entry.children}
+        <div class="children">
+          <svelte:self
+            entries={entry.children}
+            {selectedPath}
+            {depth}
+            {onSelect}
+            depth={depth + 1}
+          />
+        </div>
+      {/if}
+    </div>
+  {:else}
+    <button
+      class="tree-row file-row"
+      class:selected={selectedPath === entry.path || selectedPaths.has(entry.path)}
+      class:depth={depth}
+      onclick={(e) => handleSelect(entry.path, e)}
+      oncontextmenu={(e) => handleContextMenu(e, entry)}
+      draggable="true"
+      ondragstart={(e) => handleDragStart(e, entry)}
+    >
+      <span class="file-icon">{getIcon(entry)}</span>
+      <span class="file-name truncate">{entry.name}</span>
+    </button>
+  {/if}
+{/each}
+
+<!-- Context Menu -->
+{#if contextMenuTarget}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div class="context-backdrop" onclick={closeContextMenu} oncontextmenu={(e) => e.preventDefault()}>
+    <div
+      class="context-menu"
+      style="left: {contextMenuTarget.x}px; top: {contextMenuTarget.y}px;"
+      role="menu"
+    >
+      {#if contextMenuTarget.entry.is_dir}
+        <button class="context-item" onclick={() => {
+          const name = prompt('New file name:');
+          if (name) {
+            window.dispatchEvent(new CustomEvent('file:create', { detail: { path: `${contextMenuTarget!.entry.path}/${name}` } }));
+          }
+          contextMenuTarget = null;
+        }}>New File</button>
+        <button class="context-item" onclick={() => {
+          const name = prompt('New folder name:');
+          if (name) {
+            window.dispatchEvent(new CustomEvent('file:create-folder', { detail: { path: `${contextMenuTarget!.entry.path}/${name}` } }));
+          }
+          contextMenuTarget = null;
+        }}>New Folder</button>
+        <div class="context-separator" />
+      {/if}
+      <button class="context-item" onclick={() => handleRename(contextMenuTarget!.entry)}>Rename</button>
+      <button class="context-item" onclick={() => handleDuplicate(contextMenuTarget!.entry)}>Duplicate</button>
+      <button class="context-item" onclick={() => handleCopyPath(contextMenuTarget!.entry)}>Copy Path</button>
+      <div class="context-separator" />
+      <button class="context-item danger" onclick={() => handleDeleteEntry(contextMenuTarget!.entry)}>Delete</button>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .tree-item {
+    user-select: none;
+  }
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+    padding: 3px 6px;
+    padding-left: calc(6px + {depth} * 16px);
+    font-size: 13px;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .tree-row:hover {
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+  .tree-row.selected {
+    background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+    color: var(--color-accent);
+  }
+  .chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+  }
+  .chevron.collapsed {
+    transform: rotate(-90deg);
+  }
+  .file-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .file-name {
+    flex: 1;
+    min-width: 0;
+  }
+  .children {
+    margin: 0;
+  }
+  .context-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal, 50);
+  }
+  .context-menu {
+    position: fixed;
+    min-width: 180px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 4px;
+    z-index: var(--z-tooltip, 60);
+  }
+  .context-item {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    font-size: 13px;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+  }
+  .context-item:hover {
+    background: var(--color-surface);
+  }
+  .context-item.danger {
+    color: var(--color-error);
+  }
+  .context-item.danger:hover {
+    background: var(--color-error-bg);
+  }
+  .context-separator {
+    height: 1px;
+    background: var(--color-border);
+    margin: 4px 8px;
+  }
+</style>

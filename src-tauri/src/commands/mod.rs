@@ -1,0 +1,9 @@
+pub mod editor;
+pub mod sandbox;
+pub mod ai;
+pub mod ingest;
+pub mod search;
+pub mod git;
+pub mod voice;
+pub mod mcp;
+pub mod config;
