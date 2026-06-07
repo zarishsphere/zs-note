@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
-  import { getEditorStore } from '../stores/editor';
+  import { getEditorStore } from '../stores/editor.svelte';
   import type { CommitEntry, DiffResult } from '../types';
   import Modal from './Modal.svelte';
 

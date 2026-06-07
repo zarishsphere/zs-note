@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getEditorStore } from '../stores/editor';
-  import { getConfigStore } from '../stores/config';
+  import { getEditorStore } from '../stores/editor.svelte';
+  import { getConfigStore } from '../stores/config.svelte';
 
   let {
     onContentChange = (_content: string) => {},

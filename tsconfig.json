@@ -27,6 +27,6 @@
       "$lib/*": ["./src/lib/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte"],
+  "include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.svelte.ts"],
   "exclude": ["node_modules", "dist", "target"]
 }

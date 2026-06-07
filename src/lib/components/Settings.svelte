@@ -1,8 +1,8 @@
 <script lang="ts">
   import Modal from './Modal.svelte';
   import MCPManager from './MCPManager.svelte';
-  import { getConfigStore } from '../stores/config';
-  import { getAIStore } from '../stores/ai';
+  import { getConfigStore } from '../stores/config.svelte';
+  import { getAIStore } from '../stores/ai.svelte';
   import { invoke } from '@tauri-apps/api/core';
 
   const config = getConfigStore();

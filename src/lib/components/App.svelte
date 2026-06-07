@@ -7,10 +7,10 @@
   import Settings from './Settings.svelte';
   import ContextInspector from './ContextInspector.svelte';
   import HistoryBrowser from './HistoryBrowser.svelte';
-  import { getEditorStore } from '../stores/editor';
-  import { getFilesStore } from '../stores/files';
-  import { getAIStore } from '../stores/ai';
-  import { getConfigStore } from '../stores/config';
+  import { getEditorStore } from '../stores/editor.svelte';
+  import { getFilesStore } from '../stores/files.svelte';
+  import { getAIStore } from '../stores/ai.svelte';
+  import { getConfigStore } from '../stores/config.svelte';
 
   const editor = getEditorStore();
   const files = getFilesStore();

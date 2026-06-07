@@ -1,6 +1,6 @@
 <script lang="ts">
   import Modal from './Modal.svelte';
-  import { getAIStore } from '../stores/ai';
+  import { getAIStore } from '../stores/ai.svelte';
 
   const ai = getAIStore();
 

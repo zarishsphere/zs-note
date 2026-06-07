@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getEditorStore } from '../stores/editor';
+  import { getEditorStore } from '../stores/editor.svelte';
   import MilkdownEditor from './MilkdownEditor.svelte';
   import SourceEditor from './SourceEditor.svelte';
 

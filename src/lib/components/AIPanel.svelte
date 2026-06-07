@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getAIStore } from '../stores/ai';
+  import { getAIStore } from '../stores/ai.svelte';
   import Modal from './Modal.svelte';
   import TemplatePicker from './TemplatePicker.svelte';
 

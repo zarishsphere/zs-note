@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
-  import { getEditorStore } from '../stores/editor';
-  import { getConfigStore } from '../stores/config';
+  import { getEditorStore } from '../stores/editor.svelte';
+  import { getConfigStore } from '../stores/config.svelte';
   import type { PublishTarget } from '../types';
 
   const editor = getEditorStore();

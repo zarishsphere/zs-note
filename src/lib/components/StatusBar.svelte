@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getEditorStore } from '../stores/editor';
-  import { getFilesStore } from '../stores/files';
+  import { getEditorStore } from '../stores/editor.svelte';
+  import { getFilesStore } from '../stores/files.svelte';
 
   const editor = getEditorStore();
   const files = getFilesStore();
