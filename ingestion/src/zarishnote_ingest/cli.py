@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Optional, Sequence
@@ -110,8 +112,6 @@ def _stdin_result(args: argparse.Namespace) -> ConversionResult:
     # When an extension is provided, write to a temp file so the full
     # converter pipeline (magic-byte detection + custom converters) runs.
     if args.ext and not args.mime:
-        import tempfile, os
-
         suffix = args.ext if args.ext.startswith(".") else f".{args.ext}"
         fd, tmp = tempfile.mkstemp(suffix=suffix)
         try:

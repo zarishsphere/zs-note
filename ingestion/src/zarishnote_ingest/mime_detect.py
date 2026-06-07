@@ -1,4 +1,5 @@
 import re
+import zipfile
 from pathlib import Path
 from typing import Optional
 
@@ -120,8 +121,6 @@ class MimeDetector:
     def _refine_zip(self, path: str) -> str:
         """Distinguish OOXML / EPUB from generic ZIP."""
         try:
-            import zipfile
-
             with zipfile.ZipFile(path) as z:
                 names = z.namelist()
                 if "[Content_Types].xml" in names:

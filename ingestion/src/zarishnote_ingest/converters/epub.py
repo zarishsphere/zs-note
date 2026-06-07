@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Optional
 from html.parser import HTMLParser
@@ -33,7 +34,6 @@ class _EpubTextExtractor(HTMLParser):
             self._parts.append(data)
 
     def get_text(self) -> str:
-        import re
         return re.sub(r"\n{3,}", "\n\n", "".join(self._parts)).strip()
 
 

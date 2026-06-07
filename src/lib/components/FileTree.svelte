@@ -51,32 +51,49 @@
     contextMenuTarget = null;
   }
 
+  const SVG_FOLDER_CLOSED = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+  const SVG_FOLDER_OPEN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M6 9l-2 8h16l2-8z"/></svg>';
+  const SVG_FILE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  const SVG_FILE_TEXT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>';
+  const SVG_FILE_CODE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>';
+  const SVG_FILE_IMAGE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  const SVG_FILE_GLOBE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+
+  const fileIconMap: Record<string, string> = {
+    md: SVG_FILE_TEXT,
+    txt: SVG_FILE_TEXT,
+    js: SVG_FILE_CODE,
+    ts: SVG_FILE_CODE,
+    jsx: SVG_FILE_CODE,
+    tsx: SVG_FILE_CODE,
+    json: SVG_FILE_CODE,
+    yaml: SVG_FILE_CODE,
+    yml: SVG_FILE_CODE,
+    css: SVG_FILE_CODE,
+    scss: SVG_FILE_CODE,
+    html: SVG_FILE_GLOBE,
+    htm: SVG_FILE_GLOBE,
+    svg: SVG_FILE_IMAGE,
+    png: SVG_FILE_IMAGE,
+    jpg: SVG_FILE_IMAGE,
+    jpeg: SVG_FILE_IMAGE,
+    gif: SVG_FILE_IMAGE,
+    webp: SVG_FILE_IMAGE,
+    ico: SVG_FILE_IMAGE,
+    wasm: SVG_FILE_CODE,
+    toml: SVG_FILE_CODE,
+    rs: SVG_FILE_CODE,
+    py: SVG_FILE_CODE,
+    go: SVG_FILE_CODE,
+    svelte: SVG_FILE_CODE,
+  };
+
   function getIcon(entry: FileEntry): string {
     if (entry.is_dir) {
-      return collapsedDirs.has(entry.path) ? '📁' : '📂';
+      return collapsedDirs.has(entry.path) ? SVG_FOLDER_CLOSED : SVG_FOLDER_OPEN;
     }
     const ext = entry.extension || entry.name.split('.').pop()?.toLowerCase() || '';
-    const iconMap: Record<string, string> = {
-      md: '📝',
-      txt: '📄',
-      js: '📜',
-      ts: '📘',
-      json: '📋',
-      yaml: '📋',
-      yml: '📋',
-      css: '🎨',
-      html: '🌐',
-      svg: '🖼️',
-      png: '🖼️',
-      jpg: '🖼️',
-      jpeg: '🖼️',
-      gif: '🖼️',
-      wasm: '⚙️',
-      toml: '📋',
-      rs: '🦀',
-      py: '🐍',
-    };
-    return iconMap[ext] || '📄';
+    return fileIconMap[ext] || SVG_FILE;
   }
 
   function handleRename(entry: FileEntry) {
@@ -149,7 +166,7 @@
             <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </span>
-        <span class="file-icon">{getIcon(entry)}</span>
+        <span class="file-icon">{@html getIcon(entry)}</span>
         <span class="file-name truncate">{entry.name}</span>
       </button>
       {#if !collapsedDirs.has(entry.path) && entry.children}
@@ -174,7 +191,7 @@
       draggable="true"
       ondragstart={(e) => handleDragStart(e, entry)}
     >
-      <span class="file-icon">{getIcon(entry)}</span>
+      <span class="file-icon">{@html getIcon(entry)}</span>
       <span class="file-name truncate">{entry.name}</span>
     </button>
   {/if}

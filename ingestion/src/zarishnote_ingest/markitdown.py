@@ -4,6 +4,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Any, IO, List
 import logging
+import os
+import tempfile
+
+import requests
 
 from .mime_detect import MimeDetector
 from .charset import CharsetDetector
@@ -178,8 +182,6 @@ class ZarishNoteIngester:
 
         # 3) Plain HTTP fetch + HTML conversion
         try:
-            import requests
-
             resp = requests.get(
                 url,
                 timeout=30,
@@ -187,13 +189,6 @@ class ZarishNoteIngester:
             )
             resp.raise_for_status()
             return self.convert_response(resp)
-        except ImportError:
-            return ConversionResult(
-                text="",
-                source_url=url,
-                error="Missing dependency",
-                error_message="requests library is required for URL conversion",
-            )
         except requests.RequestException as exc:
             return ConversionResult(
                 text="",
@@ -256,9 +251,6 @@ class ZarishNoteIngester:
         # HTML path
         if mime_type in ("text/html", "application/xhtml+xml"):
             from .converters.html import HtmlConverter
-
-            import tempfile
-            import os
 
             try:
                 with tempfile.NamedTemporaryFile(
