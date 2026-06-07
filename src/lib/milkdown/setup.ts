@@ -36,7 +36,6 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
     .use(tooltip)
     .use(clipboard)
     .use(cursor)
-    .use(listener)
     .use(listener, (ctx) => {
       const listener = ctx.get(listenerCtx);
 
