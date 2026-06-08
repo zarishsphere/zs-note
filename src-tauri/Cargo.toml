@@ -32,7 +32,7 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 url = "2"
 wasmtime = "25"
 wasmtime-wasi = "25"
-git2 = "0.19"
+git2 = "0.21"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 glob-match = "0.2"
