@@ -60,17 +60,16 @@ pub fn execute_wasm(
     let params: Vec<wasmtime::Val> = vec![wasmtime::Val::I64(args.len() as i64)];
     let mut results = vec![wasmtime::Val::I64(0)];
 
-    func.call(&mut store, &params, &mut results)
-        .map_err(|e| {
-            let elapsed = start.elapsed().as_millis() as u64;
-            if elapsed >= config.timeout {
-                SandboxError::Timeout {
-                    timeout: config.timeout,
-                }
-            } else {
-                SandboxError::Other(format!("Execution failed: {}", e))
+    func.call(&mut store, &params, &mut results).map_err(|e| {
+        let elapsed = start.elapsed().as_millis() as u64;
+        if elapsed >= config.timeout {
+            SandboxError::Timeout {
+                timeout: config.timeout,
             }
-        })?;
+        } else {
+            SandboxError::Other(format!("Execution failed: {}", e))
+        }
+    })?;
 
     let result = match results.get(0) {
         Some(wasmtime::Val::I64(val)) => val.to_string(),

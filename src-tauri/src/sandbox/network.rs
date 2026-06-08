@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -49,9 +49,10 @@ impl SandboxNetworkProxy {
         let parsed = url::Url::parse(url).context("Invalid URL")?;
         let host = parsed.host_str().unwrap_or("");
 
-        let allowed = self.allowed_domains.iter().any(|pattern| {
-            glob_match(pattern, host)
-        });
+        let allowed = self
+            .allowed_domains
+            .iter()
+            .any(|pattern| glob_match(pattern, host));
 
         if !allowed {
             bail!(
@@ -69,9 +70,10 @@ impl SandboxNetworkProxy {
         let parsed = url::Url::parse(&request.url)?;
         let host = parsed.host_str().unwrap_or("");
 
-        let allowed = self.allowed_domains.iter().any(|pattern| {
-            glob_match(pattern, host)
-        });
+        let allowed = self
+            .allowed_domains
+            .iter()
+            .any(|pattern| glob_match(pattern, host));
 
         if !allowed {
             bail!("Domain '{}' is not in the allow list", host);

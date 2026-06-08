@@ -14,9 +14,7 @@ impl GitEngine {
         revwalk.push_head()?;
         revwalk.set_sorting(Sort::TIME)?;
 
-        let relative = path
-            .strip_prefix(&self.repo_path)
-            .unwrap_or(path);
+        let relative = path.strip_prefix(&self.repo_path).unwrap_or(path);
 
         let mut entries = Vec::new();
 
@@ -30,11 +28,8 @@ impl GitEngine {
             let mut diff_opts = DiffOptions::new();
             diff_opts.pathspec(relative);
 
-            let diff = repo.diff_tree_to_tree(
-                parent_tree.as_ref(),
-                Some(&tree),
-                Some(&diff_opts),
-            )?;
+            let diff =
+                repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&diff_opts))?;
 
             if diff.deltas().len() > 0 {
                 let time = commit.time();
@@ -89,9 +84,7 @@ impl GitEngine {
         let commit = commit_obj.peel_to_commit()?;
         let tree = commit.tree()?;
 
-        let relative = path
-            .strip_prefix(&self.repo_path)
-            .unwrap_or(path);
+        let relative = path.strip_prefix(&self.repo_path).unwrap_or(path);
 
         let entry = tree
             .get_path(relative)
@@ -112,9 +105,7 @@ impl GitEngine {
         let commit = commit_obj.peel_to_commit()?;
         let tree = commit.tree()?;
 
-        let relative = path
-            .strip_prefix(&self.repo_path)
-            .unwrap_or(path);
+        let relative = path.strip_prefix(&self.repo_path).unwrap_or(path);
 
         let entry = tree
             .get_path(relative)

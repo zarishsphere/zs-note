@@ -138,10 +138,7 @@ impl VectorStore {
         let index = self.index.read();
         let total_docs = index.len() as u64;
         let total_chunks = index.values().map(|d| d.chunks.len() as u64).sum();
-        let last_indexed = index
-            .values()
-            .map(|d| d.indexed_at)
-            .max();
+        let last_indexed = index.values().map(|d| d.indexed_at).max();
 
         // Estimate size from in-memory data
         let size_bytes = index

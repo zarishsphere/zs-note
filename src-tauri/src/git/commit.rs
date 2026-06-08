@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
@@ -80,19 +80,26 @@ impl AutoCommitManager {
 
                     let should_flush = {
                         let p = pending.lock().await;
-                        p.is_empty() || p.values().all(|(_, ts)| ts.elapsed() >= Duration::from_millis(debounce_ms))
+                        p.is_empty()
+                            || p.values()
+                                .all(|(_, ts)| ts.elapsed() >= Duration::from_millis(debounce_ms))
                     };
 
                     if should_flush {
                         let mut p = pending.lock().await;
-                        let files: Vec<(PathBuf, String)> = p.drain().map(|(k, (c, _))| (k, c)).collect();
+                        let files: Vec<(PathBuf, String)> =
+                            p.drain().map(|(k, (c, _))| (k, c)).collect();
                         drop(p);
 
                         if !files.is_empty() {
                             let mut engine = engine.lock().await;
                             for (path, _content) in &files {
                                 if let Err(e) = engine.auto_commit(path, "") {
-                                    tracing::warn!("Debounced auto-commit failed for {:?}: {}", path, e);
+                                    tracing::warn!(
+                                        "Debounced auto-commit failed for {:?}: {}",
+                                        path,
+                                        e
+                                    );
                                 }
                             }
                             info!("Debounced auto-commit: {} files", files.len());
@@ -143,7 +150,10 @@ pub fn generate_commit_message(paths: &[&Path], style: &str) -> String {
         }
         "descriptive" => {
             let now = chrono::Local::now();
-            format!("Auto-save from ZarishNote on {}", now.format("%Y-%m-%d %H:%M"))
+            format!(
+                "Auto-save from ZarishNote on {}",
+                now.format("%Y-%m-%d %H:%M")
+            )
         }
         _ => format!("Update {} files", paths.len()),
     }

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::Stream;
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::ai::AIProvider;
 use crate::types::*;
@@ -95,37 +95,54 @@ impl AIProvider for OllamaProvider {
         let url = format!("{}/api/chat", self.base_url);
         let response = self.client.post(&url).json(&payload).send().await?;
 
-        let stream = response.bytes_stream().map(|chunk_result| match chunk_result {
-            Ok(chunk) => {
-                let text = String::from_utf8_lossy(&chunk);
-                for line in text.lines() {
-                    if line.is_empty() {
-                        continue;
+        let stream = response
+            .bytes_stream()
+            .map(|chunk_result| match chunk_result {
+                Ok(chunk) => {
+                    let text = String::from_utf8_lossy(&chunk);
+                    for line in text.lines() {
+                        if line.is_empty() {
+                            continue;
+                        }
+                        if let Ok(json_data) = serde_json::from_str::<Value>(line) {
+                            if json_data
+                                .get("done")
+                                .and_then(|d| d.as_bool())
+                                .unwrap_or(false)
+                            {
+                                let usage = json_data
+                                    .get("eval_count")
+                                    .and_then(|c| c.as_u64())
+                                    .map(|c| TokenUsage {
+                                        prompt: json_data
+                                            .get("prompt_eval_count")
+                                            .and_then(|v| v.as_u64())
+                                            .unwrap_or(0)
+                                            as u32,
+                                        completion: c as u32,
+                                        total: (c + json_data
+                                            .get("prompt_eval_count")
+                                            .and_then(|v| v.as_u64())
+                                            .unwrap_or(0))
+                                            as u32,
+                                    });
+                                return StreamEvent::Done { usage };
+                            }
+                            if let Some(content) = json_data["message"]["content"].as_str() {
+                                return StreamEvent::Token {
+                                    content: content.to_string(),
+                                };
+                            }
+                        }
                     }
-                    if let Ok(json_data) = serde_json::from_str::<Value>(line) {
-                        if json_data.get("done").and_then(|d| d.as_bool()).unwrap_or(false) {
-                            let usage = json_data.get("eval_count").and_then(|c| c.as_u64()).map(|c| TokenUsage {
-                                prompt: json_data.get("prompt_eval_count").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                                completion: c as u32,
-                                total: (c + json_data.get("prompt_eval_count").and_then(|v| v.as_u64()).unwrap_or(0)) as u32,
-                            });
-                            return StreamEvent::Done { usage };
-                        }
-                        if let Some(content) = json_data["message"]["content"].as_str() {
-                            return StreamEvent::Token {
-                                content: content.to_string(),
-                            };
-                        }
+                    StreamEvent::Token {
+                        content: String::new(),
                     }
                 }
-                StreamEvent::Token {
-                    content: String::new(),
-                }
-            }
-            Err(e) => StreamEvent::Error {
-                message: e.to_string(),
-            },
-        });
+                Err(e) => StreamEvent::Error {
+                    message: e.to_string(),
+                },
+            });
 
         Ok(Box::new(stream))
     }

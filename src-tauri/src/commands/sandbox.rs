@@ -28,16 +28,15 @@ pub fn sandbox_execute(
 }
 
 #[tauri::command]
-pub fn sandbox_get_tools(state: State<'_, AppState>) -> Result<Vec<crate::types::ToolConfig>, String> {
+pub fn sandbox_get_tools(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::types::ToolConfig>, String> {
     let config = state.config.blocking_read();
     Ok(config.sandbox.tools.clone())
 }
 
 #[tauri::command]
-pub fn sandbox_test_tool(
-    state: State<'_, AppState>,
-    tool_name: String,
-) -> Result<bool, String> {
+pub fn sandbox_test_tool(state: State<'_, AppState>, tool_name: String) -> Result<bool, String> {
     let config = state.config.blocking_read();
     let tool = config
         .sandbox
@@ -49,8 +48,8 @@ pub fn sandbox_test_tool(
     drop(config);
 
     let sandbox = &state.sandbox;
-    let wasm_bytes = std::fs::read(&tool.wasm_path)
-        .map_err(|e| format!("Failed to read WASM module: {}", e))?;
+    let wasm_bytes =
+        std::fs::read(&tool.wasm_path).map_err(|e| format!("Failed to read WASM module: {}", e))?;
 
     sandbox
         .test_module(&wasm_bytes)

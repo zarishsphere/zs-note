@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::Stream;
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::ai::AIProvider;
 use crate::types::*;
@@ -112,8 +112,9 @@ impl AIProvider for OpenAIProvider {
             .send()
             .await?;
 
-        let stream = response.bytes_stream().map(|chunk_result| {
-            match chunk_result {
+        let stream = response
+            .bytes_stream()
+            .map(|chunk_result| match chunk_result {
                 Ok(chunk) => {
                     let text = String::from_utf8_lossy(&chunk);
                     let mut last_event = StreamEvent::Token {
@@ -126,7 +127,9 @@ impl AIProvider for OpenAIProvider {
                                 return StreamEvent::Done { usage: None };
                             }
                             if let Ok(json_data) = serde_json::from_str::<Value>(data) {
-                                if let Some(delta) = json_data["choices"][0]["delta"]["content"].as_str() {
+                                if let Some(delta) =
+                                    json_data["choices"][0]["delta"]["content"].as_str()
+                                {
                                     last_event = StreamEvent::Token {
                                         content: delta.to_string(),
                                     };
@@ -139,8 +142,7 @@ impl AIProvider for OpenAIProvider {
                 Err(e) => StreamEvent::Error {
                     message: e.to_string(),
                 },
-            }
-        });
+            });
 
         Ok(Box::new(stream))
     }

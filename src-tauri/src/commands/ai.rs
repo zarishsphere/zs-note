@@ -6,15 +6,18 @@ use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
 use tokio::sync::mpsc;
 
+use crate::AppState;
 use crate::ai::claude::ClaudeProvider;
 use crate::ai::gemini::GeminiProvider;
 use crate::ai::ollama::OllamaProvider;
 use crate::ai::openai::OpenAIProvider;
 use crate::ai::{AIProvider, ChatCompletionRequest};
 use crate::types::*;
-use crate::AppState;
 
-fn get_provider(provider_type: &Provider, config: &crate::config::Config) -> Box<dyn AIProvider + Send + Sync> {
+fn get_provider(
+    provider_type: &Provider,
+    config: &crate::config::Config,
+) -> Box<dyn AIProvider + Send + Sync> {
     match provider_type {
         Provider::OpenAI => Box::new(OpenAIProvider::new(
             config.ai.api_key.as_deref().unwrap_or(""),
@@ -31,7 +34,11 @@ fn get_provider(provider_type: &Provider, config: &crate::config::Config) -> Box
             Some("https://api.deepseek.com/v1"),
         )),
         Provider::Ollama => Box::new(OllamaProvider::new(
-            config.ai.base_url.as_deref().unwrap_or("http://localhost:11434"),
+            config
+                .ai
+                .base_url
+                .as_deref()
+                .unwrap_or("http://localhost:11434"),
         )),
     }
 }
@@ -77,11 +84,26 @@ pub fn ai_template(
     variables: HashMap<String, String>,
 ) -> Result<String, String> {
     let templates: HashMap<&str, &str> = HashMap::from([
-        ("summarize", "Please summarize the following text concisely:\n\n{content}"),
-        ("explain", "Explain the following in simple terms:\n\n{content}"),
-        ("rewrite", "Rewrite the following text to improve clarity and flow:\n\n{content}"),
-        ("translate", "Translate the following text to {language}:\n\n{content}"),
-        ("continue", "Continue writing from where this leaves off:\n\n{content}"),
+        (
+            "summarize",
+            "Please summarize the following text concisely:\n\n{content}",
+        ),
+        (
+            "explain",
+            "Explain the following in simple terms:\n\n{content}",
+        ),
+        (
+            "rewrite",
+            "Rewrite the following text to improve clarity and flow:\n\n{content}",
+        ),
+        (
+            "translate",
+            "Translate the following text to {language}:\n\n{content}",
+        ),
+        (
+            "continue",
+            "Continue writing from where this leaves off:\n\n{content}",
+        ),
     ]);
 
     let template = templates

@@ -12,7 +12,9 @@ pub fn get_config(state: State<'_, AppState>) -> Result<Config, String> {
 
 #[tauri::command]
 pub fn update_config(state: State<'_, AppState>, new_config: Config) -> Result<(), String> {
-    new_config.validate().map_err(|e| format!("Invalid config: {}", e))?;
+    new_config
+        .validate()
+        .map_err(|e| format!("Invalid config: {}", e))?;
 
     let mut config = state.config.blocking_write();
     *config = new_config.clone();

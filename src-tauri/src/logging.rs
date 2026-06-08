@@ -1,12 +1,12 @@
-use std::path::Path;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::Path;
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use tracing_appender::rolling;
 use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::prelude::*;
-use tracing_appender::rolling;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SandboxAuditEntry {
@@ -44,11 +44,7 @@ pub fn audit_log(entry: SandboxAuditEntry) {
     let log_path = Path::new(".znrc-audit.log");
     let json = serde_json::to_string(&entry).unwrap_or_default();
 
-    if let Ok(mut file) = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(log_path)
-    {
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(log_path) {
         let _ = writeln!(file, "{}", json);
     }
 

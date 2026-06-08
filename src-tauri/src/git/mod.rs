@@ -4,7 +4,7 @@ pub mod sync;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use chrono::{TimeZone, Utc};
 use git2::{DiffOptions, Oid, Repository, Signature, StatusOptions};
 use serde::{Deserialize, Serialize};
@@ -47,9 +47,7 @@ impl GitEngine {
 
     pub fn auto_commit(&mut self, path: &Path, _content: &str) -> Result<Oid> {
         let repo = self.repo()?;
-        let relative = path
-            .strip_prefix(&self.repo_path)
-            .unwrap_or(path);
+        let relative = path.strip_prefix(&self.repo_path).unwrap_or(path);
         let relative_str = relative.to_string_lossy();
 
         let mut index = repo.index()?;
@@ -102,7 +100,14 @@ impl GitEngine {
 
         let signature = Signature::now("ZarishNote", "zarishsphere@gmail.com")?;
 
-        let oid = repo.commit(Some("HEAD"), &signature, &signature, message, &tree, &parents)?;
+        let oid = repo.commit(
+            Some("HEAD"),
+            &signature,
+            &signature,
+            message,
+            &tree,
+            &parents,
+        )?;
         tracing::info!("Committed: {}", message);
         Ok(oid)
     }
@@ -123,11 +128,8 @@ impl GitEngine {
                 let tree = commit.tree()?;
                 let diff_opts = DiffOptions::new().pathspec(path);
                 let parent_tree = commit.parent(0).ok().map(|p| p.tree().ok()).flatten();
-                let diff = repo.diff_tree_to_tree(
-                    parent_tree.as_ref(),
-                    Some(&tree),
-                    Some(&diff_opts),
-                )?;
+                let diff =
+                    repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&diff_opts))?;
 
                 if diff.deltas().len() == 0 {
                     continue;
@@ -162,11 +164,7 @@ impl GitEngine {
         let mut diff_opts = DiffOptions::new();
         diff_opts.pathspec(path);
 
-        let diff = repo.diff_tree_to_tree(
-            Some(&from_tree),
-            Some(&to_tree),
-            Some(&diff_opts),
-        )?;
+        let diff = repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&diff_opts))?;
 
         let mut output = String::new();
         diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
@@ -262,10 +260,7 @@ impl GitEngine {
         let mut push_opts = git2::PushOptions::new();
         push_opts.remote_callbacks(callbacks);
 
-        remote.push(
-            &["refs/heads/main:refs/heads/main"],
-            Some(&mut push_opts),
-        )?;
+        remote.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_opts))?;
 
         tracing::info!("Pushed to remote");
         Ok(())

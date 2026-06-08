@@ -2,12 +2,16 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use anyhow::{bail, Context, Result};
-use notify::{Config as NotifyConfig, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use anyhow::{Context, Result, bail};
+use notify::{
+    Config as NotifyConfig, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::types::{EditorSettings, KnowledgeBase, PublishTarget, SyncConfig, ToolConfig, VaultConfig};
+use crate::types::{
+    EditorSettings, KnowledgeBase, PublishTarget, SyncConfig, ToolConfig, VaultConfig,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AIConfig {
@@ -278,8 +282,7 @@ impl Config {
 
     pub fn save(&self, path: &Path) -> Result<()> {
         let config_path = path.join(".znrc");
-        let yaml = serde_yaml::to_string(self)
-            .context("Failed to serialize config to YAML")?;
+        let yaml = serde_yaml::to_string(self).context("Failed to serialize config to YAML")?;
         std::fs::write(&config_path, &yaml)
             .with_context(|| format!("Failed to write .znrc to {:?}", config_path))?;
         tracing::info!("Saved config to {:?}", config_path);

@@ -36,7 +36,10 @@ pub async fn ingest_file(
         cmd.arg("--mime").arg(mime);
     }
 
-    let result = cmd.output().await.map_err(|e| format!("Ingest process failed: {}", e))?;
+    let result = cmd
+        .output()
+        .await
+        .map_err(|e| format!("Ingest process failed: {}", e))?;
 
     if !result.status.success() {
         let stderr = String::from_utf8_lossy(&result.stderr);
@@ -84,7 +87,13 @@ pub fn list_converters() -> Vec<ConverterInfo> {
         ConverterInfo {
             name: "images".into(),
             description: "Extracts text from images via OCR (Tesseract)".into(),
-            input_formats: vec!["png".into(), "jpg".into(), "jpeg".into(), "tiff".into(), "bmp".into()],
+            input_formats: vec![
+                "png".into(),
+                "jpg".into(),
+                "jpeg".into(),
+                "tiff".into(),
+                "bmp".into(),
+            ],
             output_formats: vec!["md".into(), "txt".into()],
         },
         ConverterInfo {
@@ -101,7 +110,13 @@ pub fn list_converters() -> Vec<ConverterInfo> {
                 "csv".into(),
                 "tsv".into(),
             ],
-            output_formats: vec!["md".into(), "html".into(), "pdf".into(), "latex".into(), "docx".into()],
+            output_formats: vec![
+                "md".into(),
+                "html".into(),
+                "pdf".into(),
+                "latex".into(),
+                "docx".into(),
+            ],
         },
     ]
 }

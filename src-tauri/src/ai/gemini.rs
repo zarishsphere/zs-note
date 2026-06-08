@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::Stream;
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::ai::AIProvider;
 use crate::types::*;
@@ -117,30 +117,33 @@ impl AIProvider for GeminiProvider {
             .send()
             .await?;
 
-        let stream = response.bytes_stream().map(|chunk_result| match chunk_result {
-            Ok(chunk) => {
-                let text = String::from_utf8_lossy(&chunk);
-                for line in text.lines() {
-                    if let Some(data) = line.strip_prefix("data: ") {
-                        if let Ok(json_data) = serde_json::from_str::<Value>(data) {
-                            if let Some(text_content) =
-                                json_data["candidates"][0]["content"]["parts"][0]["text"].as_str()
-                            {
-                                return StreamEvent::Token {
-                                    content: text_content.to_string(),
-                                };
+        let stream = response
+            .bytes_stream()
+            .map(|chunk_result| match chunk_result {
+                Ok(chunk) => {
+                    let text = String::from_utf8_lossy(&chunk);
+                    for line in text.lines() {
+                        if let Some(data) = line.strip_prefix("data: ") {
+                            if let Ok(json_data) = serde_json::from_str::<Value>(data) {
+                                if let Some(text_content) =
+                                    json_data["candidates"][0]["content"]["parts"][0]["text"]
+                                        .as_str()
+                                {
+                                    return StreamEvent::Token {
+                                        content: text_content.to_string(),
+                                    };
+                                }
                             }
                         }
                     }
+                    StreamEvent::Token {
+                        content: String::new(),
+                    }
                 }
-                StreamEvent::Token {
-                    content: String::new(),
-                }
-            }
-            Err(e) => StreamEvent::Error {
-                message: e.to_string(),
-            },
-        });
+                Err(e) => StreamEvent::Error {
+                    message: e.to_string(),
+                },
+            });
 
         Ok(Box::new(stream))
     }
@@ -175,11 +178,7 @@ impl AIProvider for GeminiProvider {
             self.api_key
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await?;
+        let response = self.client.get(&url).send().await?;
 
         let data: Value = response.json().await?;
         let models = data["models"]

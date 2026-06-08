@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use serde_json::Value;
 use tracing::info;
 
@@ -34,7 +34,10 @@ impl McpToolRouter {
 
     pub fn register_route(&mut self, route_key: &str, config: RouteConfig) {
         self.routes.insert(route_key.to_string(), config);
-        info!("Registered MCP route: {} -> {}/{}", route_key, config.server_name, config.tool_name);
+        info!(
+            "Registered MCP route: {} -> {}/{}",
+            route_key, config.server_name, config.tool_name
+        );
     }
 
     pub fn add_confirmation_rule(&mut self, rule: ConfirmationRule) {
@@ -43,16 +46,18 @@ impl McpToolRouter {
 
     pub fn get_route(&self, server: &str, tool: &str) -> Option<&RouteConfig> {
         let exact = format!("{}/{}", server, tool);
-        self.routes.get(&exact)
-            .or_else(|| {
-                self.routes.iter().find(|(key, _)| {
+        self.routes.get(&exact).or_else(|| {
+            self.routes
+                .iter()
+                .find(|(key, _)| {
                     if let Some(tool_part) = key.split('/').nth(1) {
                         tool_part == "*" || tool_part == tool
                     } else {
                         false
                     }
-                }).map(|(_, config)| config)
-            })
+                })
+                .map(|(_, config)| config)
+        })
     }
 
     pub fn requires_confirmation(&self, server: &str, tool: &str, args: &Value) -> bool {
@@ -77,11 +82,13 @@ impl McpToolRouter {
         }
 
         let sensitive_tools = [
-            "write", "delete", "remove", "rm", "exec", "execute",
-            "run", "bash", "shell", "command", "sql", "query",
+            "write", "delete", "remove", "rm", "exec", "execute", "run", "bash", "shell",
+            "command", "sql", "query",
         ];
 
-        sensitive_tools.iter().any(|s| tool.to_lowercase().contains(s))
+        sensitive_tools
+            .iter()
+            .any(|s| tool.to_lowercase().contains(s))
     }
 
     pub fn format_tool_result(&self, result: Value, tool_name: &str) -> Result<String> {
@@ -94,7 +101,11 @@ impl McpToolRouter {
                 .iter()
                 .filter_map(|part| {
                     let text = part["text"].as_str()?;
-                    if text.is_empty() { None } else { Some(text.to_string()) }
+                    if text.is_empty() {
+                        None
+                    } else {
+                        Some(text.to_string())
+                    }
                 })
                 .collect();
 
@@ -145,10 +156,7 @@ pub struct RouteAction {
     pub args: Value,
 }
 
-pub async fn execute_with_confirmation<F, Fut>(
-    action: RouteAction,
-    confirm_fn: F,
-) -> Result<Value>
+pub async fn execute_with_confirmation<F, Fut>(action: RouteAction, confirm_fn: F) -> Result<Value>
 where
     F: FnOnce(RouteAction) -> Fut,
     Fut: std::future::Future<Output = Result<bool>>,

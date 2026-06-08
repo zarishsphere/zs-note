@@ -80,16 +80,7 @@ pub fn chunk_by_paragraphs(text: &str, max_chunk_size: usize) -> Vec<String> {
 }
 
 pub fn chunk_semantic(text: &str, max_chunk_size: usize) -> Vec<String> {
-    let boundaries = [
-        "\n## ",
-        "\n### ",
-        "\n---\n",
-        "\n\n",
-        "\n",
-        ". ",
-        "! ",
-        "? ",
-    ];
+    let boundaries = ["\n## ", "\n### ", "\n---\n", "\n\n", "\n", ". ", "! ", "? "];
 
     let mut chunks = Vec::new();
     let mut start = 0;
@@ -149,10 +140,7 @@ pub fn deduplicate_chunks(chunks: Vec<String>) -> Vec<String> {
     let mut result = Vec::new();
 
     for chunk in chunks {
-        let normalized: String = chunk
-            .chars()
-            .filter(|c| !c.is_whitespace())
-            .collect();
+        let normalized: String = chunk.chars().filter(|c| !c.is_whitespace()).collect();
 
         if seen.insert(normalized) {
             result.push(chunk);
@@ -173,7 +161,10 @@ impl VectorStore {
                     && e.path()
                         .extension()
                         .map(|ext| {
-                            matches!(ext.to_str(), Some("md" | "markdown" | "txt" | "json" | "yaml" | "yml" | "toml"))
+                            matches!(
+                                ext.to_str(),
+                                Some("md" | "markdown" | "txt" | "json" | "yaml" | "yml" | "toml")
+                            )
                         })
                         .unwrap_or(false)
             });

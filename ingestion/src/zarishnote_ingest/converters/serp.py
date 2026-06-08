@@ -129,7 +129,7 @@ class SerpConverter(BaseConverter):
                     md_lines.append("")
 
             has_results = any(
-                l.strip().startswith(("1.", "1)")) for l in md_lines
+                line.strip().startswith(("1.", "1)")) for line in md_lines
             )
             if not has_results:
                 md_lines.append("*No structured results extracted.*")

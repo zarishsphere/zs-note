@@ -1,7 +1,7 @@
-pub mod openai;
 pub mod claude;
 pub mod gemini;
 pub mod ollama;
+pub mod openai;
 
 use async_trait::async_trait;
 use futures::Stream;

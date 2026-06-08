@@ -29,7 +29,10 @@ pub fn search_files(
         None => vault.clone(),
     };
 
-    let case_sensitive = filters.as_ref().and_then(|f| f.case_sensitive).unwrap_or(false);
+    let case_sensitive = filters
+        .as_ref()
+        .and_then(|f| f.case_sensitive)
+        .unwrap_or(false);
     let file_types = filters.as_ref().and_then(|f| f.file_types.clone());
 
     let query_lower = query.to_lowercase();

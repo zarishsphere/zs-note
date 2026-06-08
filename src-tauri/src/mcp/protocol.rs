@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -86,11 +86,7 @@ pub fn parse_jsonrpc_message(data: &str) -> Result<JsonRpcMessage> {
             let jsonrpc = value["jsonrpc"].as_str().unwrap_or("2.0").to_string();
             let id = value["id"].as_i64().unwrap_or(0);
             let error: JsonRpcError = serde_json::from_value(value["error"].clone())?;
-            Ok(JsonRpcMessage::Error {
-                jsonrpc,
-                id,
-                error,
-            })
+            Ok(JsonRpcMessage::Error { jsonrpc, id, error })
         }
         (false, true, false, false) => {
             let msg: JsonRpcNotification = serde_json::from_value(value)?;

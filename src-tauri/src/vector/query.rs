@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 use crate::types::SearchResult;
@@ -47,19 +47,11 @@ impl VectorStore {
         }
 
         if let Some(ref kbs) = options.kb_filter {
-            results.retain(|r| {
-                kbs.iter().any(|kb| {
-                    r.path.to_string_lossy().contains(kb)
-                })
-            });
+            results.retain(|r| kbs.iter().any(|kb| r.path.to_string_lossy().contains(kb)));
         }
 
         if let Some(ref paths) = options.path_filter {
-            results.retain(|r| {
-                paths.iter().any(|p| {
-                    r.path.to_string_lossy().contains(p)
-                })
-            });
+            results.retain(|r| paths.iter().any(|p| r.path.to_string_lossy().contains(p)));
         }
 
         let total = results.len();
@@ -73,10 +65,7 @@ impl VectorStore {
 
     pub fn similarity_search(&self, query: &str, top_k: usize) -> Vec<(f64, SearchResult)> {
         let results = self.query(query, "default", top_k);
-        results
-            .into_iter()
-            .map(|r| (r.score, r))
-            .collect()
+        results.into_iter().map(|r| (r.score, r)).collect()
     }
 
     pub fn search_with_citations(&self, query: &str, top_k: usize) -> String {
@@ -133,11 +122,7 @@ impl VectorStore {
         let mut ranked: Vec<(SearchResult, f64)> = combined.into_values().collect();
         ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-        ranked
-            .into_iter()
-            .take(top_k)
-            .map(|(r, _)| r)
-            .collect()
+        ranked.into_iter().take(top_k).map(|(r, _)| r).collect()
     }
 
     pub fn keyword_search(&self, query: &str, top_k: usize) -> Vec<SearchResult> {
@@ -216,7 +201,11 @@ pub fn format_citation(result: &SearchResult, style: &str) -> String {
             format!(
                 "\"{}\" ({})",
                 result.title,
-                result.path.file_name().and_then(|s| s.to_str()).unwrap_or("")
+                result
+                    .path
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("")
             )
         }
         _ => {
@@ -250,10 +239,7 @@ pub fn rerank_results(query: &str, results: Vec<SearchResult>) -> Vec<SearchResu
         })
         .collect();
 
-    scored.sort_by(|a, b| {
-        b.1.partial_cmp(&a.1)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     scored.into_iter().map(|(r, _)| r).collect()
 }

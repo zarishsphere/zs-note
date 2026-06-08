@@ -49,10 +49,12 @@ async function sendMessage(input: string): Promise<void> {
   isStreaming = true;
 
   try {
+    const provider = selectedProvider || providers[0]?.id || '';
+    const model = selectedModel || providers[0]?.defaultModel || '';
     const result = await aiCommands.aiChat(
       userMessages,
-      selectedProvider || providers[0]?.id,
-      selectedModel || providers[0]?.defaultModel,
+      provider,
+      model,
       (chunk) => {
         streamingContent += chunk;
         messages = messages.map(m =>

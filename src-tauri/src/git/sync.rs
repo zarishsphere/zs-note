@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use git2::{Cred, FetchOptions, PushOptions, RemoteCallbacks, Repository};
 use tokio::sync::Mutex;
 use tracing::info;
@@ -119,18 +119,14 @@ impl RemoteSyncManager {
             let mut reference = repo.find_reference(refname)?;
             reference.set_target(fetch_commit.id(), "Fast-forward merge")?;
             repo.set_head(refname)?;
-            repo.checkout_head(Some(
-                git2::build::CheckoutBuilder::default().force(),
-            ))?;
+            repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
             info("Fast-forwarded to remote");
         } else if analysis.0.is_normal() {
             let refname = "refs/heads/main";
             let mut reference = repo.find_reference(refname)?;
             reference.set_target(fetch_commit.id(), "Merge")?;
             repo.set_head(refname)?;
-            repo.checkout_head(Some(
-                git2::build::CheckoutBuilder::default().force(),
-            ))?;
+            repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
             info("Merged with remote");
         } else {
             bail!("Merge conflict detected — manual resolution required");

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use async_trait::async_trait;
 use serde_json::Value;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -112,7 +112,9 @@ impl McpTransport for StdioTransport {
     }
 
     async fn list_tools(&self) -> Result<Vec<McpToolInfo>> {
-        let result = self.send_request("tools/list", serde_json::json!({})).await?;
+        let result = self
+            .send_request("tools/list", serde_json::json!({}))
+            .await?;
 
         let tools = result["tools"]
             .as_array()
@@ -120,10 +122,7 @@ impl McpTransport for StdioTransport {
                 arr.iter()
                     .map(|t| McpToolInfo {
                         name: t["name"].as_str().unwrap_or("").to_string(),
-                        description: t["description"]
-                            .as_str()
-                            .unwrap_or("")
-                            .to_string(),
+                        description: t["description"].as_str().unwrap_or("").to_string(),
                         input_schema: t["inputSchema"].clone(),
                     })
                     .collect()
@@ -233,10 +232,7 @@ impl McpTransport for HttpTransport {
                 arr.iter()
                     .map(|t| McpToolInfo {
                         name: t["name"].as_str().unwrap_or("").to_string(),
-                        description: t["description"]
-                            .as_str()
-                            .unwrap_or("")
-                            .to_string(),
+                        description: t["description"].as_str().unwrap_or("").to_string(),
                         input_schema: t["inputSchema"].clone(),
                     })
                     .collect()

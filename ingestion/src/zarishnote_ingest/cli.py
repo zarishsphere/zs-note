@@ -219,7 +219,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         print(
             "Install the missing optional dependency, e.g.:\n"
-            f"    pip install 'zarishnote-ingest[all]'",
+            "    pip install 'zarishnote-ingest[all]'",
             file=sys.stderr,
         )
         return 1

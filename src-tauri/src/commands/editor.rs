@@ -4,14 +4,13 @@ use std::path::{Path, PathBuf};
 use tauri::State;
 use walkdir::WalkDir;
 
-use crate::types::{AppState, FileEntry};
 use crate::config::Config;
+use crate::types::{AppState, FileEntry};
 
 #[tauri::command]
 pub fn read_file(state: State<'_, AppState>, path: String) -> Result<String, String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
-    std::fs::read_to_string(&full_path)
-        .map_err(|e| format!("Failed to read file: {}", e))
+    std::fs::read_to_string(&full_path).map_err(|e| format!("Failed to read file: {}", e))
 }
 
 #[tauri::command]
@@ -21,8 +20,7 @@ pub fn save_file(state: State<'_, AppState>, path: String, content: String) -> R
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create directories: {}", e))?;
     }
-    std::fs::write(&full_path, &content)
-        .map_err(|e| format!("Failed to write file: {}", e))?;
+    std::fs::write(&full_path, &content).map_err(|e| format!("Failed to write file: {}", e))?;
 
     let config = state.config.blocking_read();
     if config.git.auto_commit {
@@ -37,15 +35,18 @@ pub fn save_file(state: State<'_, AppState>, path: String, content: String) -> R
 }
 
 #[tauri::command]
-pub fn list_files(state: State<'_, AppState>, path: Option<String>) -> Result<Vec<FileEntry>, String> {
+pub fn list_files(
+    state: State<'_, AppState>,
+    path: Option<String>,
+) -> Result<Vec<FileEntry>, String> {
     let base = match path {
         Some(p) => resolve_vault_path(&state.vault_path, &p)?,
         None => state.vault_path.clone(),
     };
 
     let mut entries = Vec::new();
-    let read_dir = std::fs::read_dir(&base)
-        .map_err(|e| format!("Failed to read directory: {}", e))?;
+    let read_dir =
+        std::fs::read_dir(&base).map_err(|e| format!("Failed to read directory: {}", e))?;
 
     for entry in read_dir {
         let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
@@ -94,34 +95,33 @@ pub fn create_file(state: State<'_, AppState>, path: String) -> Result<(), Strin
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create directories: {}", e))?;
     }
-    std::fs::write(&full_path, "")
-        .map_err(|e| format!("Failed to create file: {}", e))
+    std::fs::write(&full_path, "").map_err(|e| format!("Failed to create file: {}", e))
 }
 
 #[tauri::command]
 pub fn create_folder(state: State<'_, AppState>, path: String) -> Result<(), String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
-    std::fs::create_dir_all(&full_path)
-        .map_err(|e| format!("Failed to create folder: {}", e))
+    std::fs::create_dir_all(&full_path).map_err(|e| format!("Failed to create folder: {}", e))
 }
 
 #[tauri::command]
-pub fn rename_file(state: State<'_, AppState>, old_path: String, new_path: String) -> Result<(), String> {
+pub fn rename_file(
+    state: State<'_, AppState>,
+    old_path: String,
+    new_path: String,
+) -> Result<(), String> {
     let old_full = resolve_vault_path(&state.vault_path, &old_path)?;
     let new_full = resolve_vault_path(&state.vault_path, &new_path)?;
-    std::fs::rename(&old_full, &new_full)
-        .map_err(|e| format!("Failed to rename: {}", e))
+    std::fs::rename(&old_full, &new_full).map_err(|e| format!("Failed to rename: {}", e))
 }
 
 #[tauri::command]
 pub fn delete_file(state: State<'_, AppState>, path: String) -> Result<(), String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
     if full_path.is_dir() {
-        std::fs::remove_dir_all(&full_path)
-            .map_err(|e| format!("Failed to delete folder: {}", e))
+        std::fs::remove_dir_all(&full_path).map_err(|e| format!("Failed to delete folder: {}", e))
     } else {
-        std::fs::remove_file(&full_path)
-            .map_err(|e| format!("Failed to delete file: {}", e))
+        std::fs::remove_file(&full_path).map_err(|e| format!("Failed to delete file: {}", e))
     }
 }
 
@@ -131,20 +131,31 @@ pub fn duplicate_file(state: State<'_, AppState>, path: String) -> Result<(), St
     if !full_path.exists() {
         return Err("File does not exist".into());
     }
-    let stem = full_path.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
+    let stem = full_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("file");
     let ext = full_path.extension().and_then(|s| s.to_str()).unwrap_or("");
     let parent = full_path.parent().unwrap_or(Path::new("."));
     let mut counter = 1;
     let new_path = loop {
-        let name = format!("{} (copy {}){}", stem, counter, if ext.is_empty() { String::new() } else { format!(".{}", ext) });
+        let name = format!(
+            "{} (copy {}){}",
+            stem,
+            counter,
+            if ext.is_empty() {
+                String::new()
+            } else {
+                format!(".{}", ext)
+            }
+        );
         let candidate = parent.join(&name);
         if !candidate.exists() {
             break candidate;
         }
         counter += 1;
     };
-    std::fs::copy(&full_path, &new_path)
-        .map_err(|e| format!("Failed to duplicate: {}", e))?;
+    std::fs::copy(&full_path, &new_path).map_err(|e| format!("Failed to duplicate: {}", e))?;
     Ok(())
 }
 
@@ -194,7 +205,11 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, Strin
     }
 
     files.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(files.into_iter().take(20).map(|(p, _)| p.to_string_lossy().to_string()).collect())
+    Ok(files
+        .into_iter()
+        .take(20)
+        .map(|(p, _)| p.to_string_lossy().to_string())
+        .collect())
 }
 
 fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {

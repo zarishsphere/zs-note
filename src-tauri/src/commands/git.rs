@@ -1,6 +1,6 @@
-use tauri::State;
-use crate::types::*;
 use crate::AppState;
+use crate::types::*;
+use tauri::State;
 
 #[tauri::command]
 pub fn git_commit(state: State<'_, AppState>, path: String) -> Result<(), String> {
@@ -79,7 +79,8 @@ pub fn git_diff(
 #[tauri::command]
 pub fn git_status(state: State<'_, AppState>) -> Result<GitStatus, String> {
     let git = state.git.blocking_read();
-    git.get_status().map_err(|e| format!("Git status failed: {}", e))
+    git.get_status()
+        .map_err(|e| format!("Git status failed: {}", e))
 }
 
 #[tauri::command]

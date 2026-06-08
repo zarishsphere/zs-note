@@ -1,12 +1,12 @@
-pub mod commands;
-pub mod sandbox;
 pub mod ai;
-pub mod git;
-pub mod mcp;
-pub mod vector;
+pub mod commands;
 pub mod config;
+pub mod git;
 pub mod logging;
+pub mod mcp;
+pub mod sandbox;
 pub mod types;
+pub mod vector;
 
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -15,8 +15,8 @@ use crate::config::Config;
 use crate::git::GitEngine;
 use crate::logging::init_logging;
 use crate::sandbox::SandboxEngine;
-use crate::vector::VectorStore;
 use crate::types::AppState;
+use crate::vector::VectorStore;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

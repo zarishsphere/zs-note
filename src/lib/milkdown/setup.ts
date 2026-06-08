@@ -1,3 +1,4 @@
+import type { Ctx } from '@milkdown/core';
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
@@ -26,7 +27,7 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
   const { content, readOnly, onChange, onSave, root } = options;
 
   const editor = Editor.make()
-    .config((ctx) => {
+    .config((ctx: Ctx) => {
       ctx.set(rootCtx, root);
       ctx.set(defaultValueCtx, content);
     })
@@ -36,22 +37,22 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
     .use(tooltip)
     .use(clipboard)
     .use(cursor)
-    .use(listener, (ctx) => {
-      const listener = ctx.get(listenerCtx);
+    .use(listener, (ctx: Ctx) => {
+      const l = ctx.get(listenerCtx);
 
-      listener.markdownUpdated((ctx, markdown) => {
+      l.markdownUpdated((_ctx: Ctx, markdown: string) => {
         onChange?.(markdown);
       });
 
-      listener.mounted(() => {
+      l.mounted(() => {
         if (readOnly) {
           const view = ctx.get(editorViewCtx);
           view.dom.setAttribute('contenteditable', 'false');
         }
       });
     })
-    .config((ctx) => {
-      const listener = ctx.get(listenerCtx);
+    .config((ctx: Ctx) => {
+      const l = ctx.get(listenerCtx);
 
       document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -76,7 +77,7 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
     },
     async setContent(markdown: string) {
       const { setMarkdown } = await import('@milkdown/utils');
-      editor.action((ctx) => {
+      editor.action((ctx: Ctx) => {
         ctx.set(defaultValueCtx, markdown);
       });
     },

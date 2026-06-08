@@ -1,5 +1,5 @@
-pub mod executor;
 pub mod capability;
+pub mod executor;
 pub mod network;
 
 use std::path::Path;
@@ -10,7 +10,7 @@ use thiserror::Error;
 use wasmtime::{Engine, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 
-use crate::logging::{audit_log, SandboxAuditEntry};
+use crate::logging::{SandboxAuditEntry, audit_log};
 use crate::types::ToolConfig;
 
 #[derive(Debug, Error)]
@@ -83,9 +83,9 @@ impl SandboxEngine {
 
         let instance = wasmtime::Instance::new(&mut store, &module, &[])?;
 
-        let func = instance
-            .get_func(&mut store, func_name)
-            .ok_or_else(|| SandboxError::Other(format!("Function '{}' not found in module", func_name)))?;
+        let func = instance.get_func(&mut store, func_name).ok_or_else(|| {
+            SandboxError::Other(format!("Function '{}' not found in module", func_name))
+        })?;
 
         let params: Vec<wasmtime::Val> = vec![wasmtime::Val::I64(args_json.len() as i64)];
         let mut results = vec![wasmtime::Val::I64(0)];

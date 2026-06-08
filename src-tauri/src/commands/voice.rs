@@ -19,17 +19,13 @@ pub struct VoiceCommand {
 }
 
 #[tauri::command]
-pub fn voice_start_recording(
-    _state: State<'_, AppState>,
-) -> Result<(), String> {
+pub fn voice_start_recording(_state: State<'_, AppState>) -> Result<(), String> {
     tracing::info!("Voice recording started");
     Ok(())
 }
 
 #[tauri::command]
-pub fn voice_stop_recording(
-    _state: State<'_, AppState>,
-) -> Result<VoiceRecognitionResult, String> {
+pub fn voice_stop_recording(_state: State<'_, AppState>) -> Result<VoiceRecognitionResult, String> {
     tracing::info!("Voice recording stopped");
     Ok(VoiceRecognitionResult {
         text: String::new(),
@@ -48,22 +44,12 @@ pub fn voice_process_command(
     let (command_type, parameters) = if lower.contains("save") {
         ("save".into(), std::collections::HashMap::new())
     } else if lower.contains("search") {
-        let query = text
-            .split("search")
-            .nth(1)
-            .unwrap_or("")
-            .trim()
-            .to_string();
+        let query = text.split("search").nth(1).unwrap_or("").trim().to_string();
         let mut params = std::collections::HashMap::new();
         params.insert("query".into(), query);
         ("search".into(), params)
     } else if lower.contains("open") {
-        let file = text
-            .split("open")
-            .nth(1)
-            .unwrap_or("")
-            .trim()
-            .to_string();
+        let file = text.split("open").nth(1).unwrap_or("").trim().to_string();
         let mut params = std::collections::HashMap::new();
         params.insert("file".into(), file);
         ("open".into(), params)

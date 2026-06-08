@@ -1,11 +1,11 @@
-pub mod transport;
 pub mod protocol;
 pub mod router;
+pub mod transport;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::info;
@@ -85,7 +85,12 @@ impl MCPClient {
         Ok(())
     }
 
-    pub async fn call_tool(&self, server_name: &str, tool_name: &str, args: Value) -> Result<Value> {
+    pub async fn call_tool(
+        &self,
+        server_name: &str,
+        tool_name: &str,
+        args: Value,
+    ) -> Result<Value> {
         let servers = self.servers.read().await;
         let instance = servers
             .get(server_name)
