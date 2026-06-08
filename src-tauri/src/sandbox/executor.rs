@@ -1,10 +1,11 @@
 use std::time::Instant;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use wasmtime::component::Component;
-use wasmtime::component::{Linker, ResourceTable};
+use wasmtime::component::Linker;
+use wasmtime::component::ResourceTable;
 use wasmtime::{Engine, Store};
-use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
+use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView};
 
 use crate::sandbox::SandboxError;
 use crate::types::ToolConfig;
@@ -12,16 +13,15 @@ use crate::types::ToolConfig;
 struct SandboxWasi {
     ctx: WasiCtx,
     table: ResourceTable,
-    output: Vec<u8>,
+    _output: Vec<u8>,
 }
 
 impl WasiView for SandboxWasi {
-    fn ctx(&mut self) -> &mut WasiCtx {
-        &mut self.ctx
-    }
-
-    fn table(&mut self) -> &mut ResourceTable {
-        &mut self.table
+    fn ctx(&mut self) -> WasiCtxView<'_> {
+        WasiCtxView {
+            ctx: &mut self.ctx,
+            table: &mut self.table,
+        }
     }
 }
 
@@ -36,7 +36,7 @@ pub fn execute_wasm(
 
     let component = Component::new(engine, wasm_bytes)?;
 
-    let mut wasi_ctx = SandboxWasi {
+    let wasi_ctx = SandboxWasi {
         ctx: WasiCtxBuilder::new()
             .inherit_stdout()
             .inherit_stderr()
@@ -44,7 +44,7 @@ pub fn execute_wasm(
             .args(&["wasm-module", func_name, args])
             .build(),
         table: ResourceTable::default(),
-        output: Vec::new(),
+        _output: Vec::new(),
     };
 
     let mut store = Store::new(engine, wasi_ctx);
@@ -52,7 +52,7 @@ pub fn execute_wasm(
     store.set_fuel(config.memory_limit as u64)?;
 
     let mut linker = Linker::new(engine);
-    wasmtime_wasi::add_to_linker_sync(&mut linker).context("Failed to add WASI to linker")?;
+    wasmtime_wasi::p2::add_to_linker_sync(&mut linker)?;
 
     let instance = linker
         .instantiate(&mut store, &component)

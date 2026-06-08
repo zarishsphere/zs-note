@@ -6,7 +6,7 @@ authors = ["Mohammad Ariful Islam <zarishsphere@gmail.com>"]
 edition = "2024"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.6", features = [] }
 
 [lib]
 name = "zs_note_lib"
@@ -17,12 +17,12 @@ name = "zs-note"
 path = "src/main.rs"
 
 [dependencies]
-tauri = { version = "2", features = ["devtools"] }
-tauri-plugin-shell = "2"
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-notification = "2"
-tauri-plugin-clipboard-manager = "2"
+tauri = { version = "2.11", features = ["devtools"] }
+tauri-plugin-shell = "2.3"
+tauri-plugin-dialog = "2.7"
+tauri-plugin-fs = "2.5"
+tauri-plugin-notification = "2.3"
+tauri-plugin-clipboard-manager = "2.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
@@ -33,8 +33,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"] }
 url = "2"
-wasmtime = "25"
-wasmtime-wasi = "25"
+wasmtime = "45"
+wasmtime-wasi = "45"
 git2 = "0.19"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }

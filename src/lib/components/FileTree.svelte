@@ -153,7 +153,7 @@
       <button
         class="tree-row dir-row"
         class:selected={selectedPath === entry.path || selectedPaths.has(entry.path)}
-        class:depth={depth}
+        style="--depth: {depth}"
         onclick={(e) => { toggleDir(entry.path); handleSelect(entry.path, e); }}
         oncontextmenu={(e) => handleContextMenu(e, entry)}
         ondragover={handleDragOver}
@@ -174,7 +174,6 @@
           <svelte:self
             entries={entry.children}
             {selectedPath}
-            {depth}
             {onSelect}
             depth={depth + 1}
           />
@@ -185,7 +184,7 @@
     <button
       class="tree-row file-row"
       class:selected={selectedPath === entry.path || selectedPaths.has(entry.path)}
-      class:depth={depth}
+      style="--depth: {depth}"
       onclick={(e) => handleSelect(entry.path, e)}
       oncontextmenu={(e) => handleContextMenu(e, entry)}
       draggable="true"
@@ -242,7 +241,7 @@
     gap: 3px;
     width: 100%;
     padding: 3px 6px;
-    padding-left: calc(6px + {depth} * 16px);
+    padding-left: calc(6px + var(--depth) * 16px);
     font-size: 13px;
     text-align: left;
     border-radius: var(--radius-sm);

@@ -23,10 +23,10 @@ ZarishNote is a desktop note-taking application that combines a rich Markdown ed
 | Layer | Technology |
 |---|---|
 | Framework | Tauri v2 (Rust backend, native WebView) |
-| Frontend | Svelte 5 + TypeScript + Vite 6 |
-| Package manager | pnpm 9.x |
+| Frontend | Svelte 5 + TypeScript 6 + Vite 8 |
+| Package manager | pnpm 11.x |
 | Editor core | Milkdown 7.x (ProseMirror) |
-| Sandbox | Wasmtime 25.x (Rust crate) |
+| Sandbox | Wasmtime 45.x (Rust crate) |
 | Vector store | LanceDB (embedded, local) |
 | Ingestion | Python CLI (MarkItDown + custom converters) |
 | CI/CD | GitHub Actions |
@@ -35,7 +35,7 @@ ZarishNote is a desktop note-taking application that combines a rich Markdown ed
 
 ## Getting Started
 
-*Prerequisites: Node.js ≥20, pnpm ≥9, Rust toolchain (rustup), Tauri system dependencies.*
+*Prerequisites: Node.js ≥24, pnpm ≥11, Rust toolchain (rustup), Tauri system dependencies.*
 
 ```bash
 # Clone

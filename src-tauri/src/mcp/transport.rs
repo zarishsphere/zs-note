@@ -158,7 +158,7 @@ pub struct HttpTransport {
     client: reqwest::Client,
     base_url: String,
     request_id: std::sync::atomic::AtomicU64,
-    sse_url: Option<String>,
+    _sse_url: Option<String>,
 }
 
 impl HttpTransport {
@@ -170,7 +170,7 @@ impl HttpTransport {
                 .expect("Failed to create HTTP client"),
             base_url: url.trim_end_matches('/').to_string(),
             request_id: std::sync::atomic::AtomicU64::new(0),
-            sse_url: None,
+            _sse_url: None,
         }
     }
 

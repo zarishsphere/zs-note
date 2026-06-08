@@ -123,7 +123,8 @@
                     type={keyStates[p.id]?.visible ? 'text' : 'password'}
                     class="key-input"
                     placeholder={p.keyLabel}
-                    bind:value={keyStates[p.id]?.key ?? ''}
+                    value={keyStates[p.id]?.key ?? ''}
+                    oninput={(e) => { if (keyStates[p.id]) keyStates[p.id].key = (e.target as HTMLInputElement).value; }}
                     disabled={keyStates[p.id]?.hasKey}
                   />
                   <button

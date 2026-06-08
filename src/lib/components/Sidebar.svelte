@@ -188,6 +188,7 @@
   onClose={() => { showImportDialog = false; }}
   onImported={handleImported}
 />
+</aside>
 
 <style>
   .sidebar {

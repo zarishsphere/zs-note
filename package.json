@@ -33,16 +33,16 @@
     "mermaid": "^11.15.0"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2",
-    "svelte": "^5",
-    "svelte-check": "^4",
-    "typescript": "^5",
-    "vite": "^6"
+    "svelte": "^5.56.2",
+    "svelte-check": "^4.5.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+  "packageManager": "pnpm@11.5.1",
+  "engines": {
+    "node": "^24.15.0",
+    "pnpm": "^11.5.1"
   }
 }

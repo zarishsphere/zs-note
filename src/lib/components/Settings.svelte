@@ -218,11 +218,11 @@
                 </div>
                 <div class="input-group">
                   <label>API Key</label>
-                  <input type="password" bind:value={provider.api_key ?? ''} placeholder="sk-..." />
+                  <input type="password" value={provider.api_key ?? ''} oninput={(e) => { provider.api_key = (e.target as HTMLInputElement).value; }} placeholder="sk-..." />
                 </div>
                 <div class="input-group">
                   <label>Base URL</label>
-                  <input type="text" bind:value={provider.base_url ?? ''} placeholder="https://api.openai.com/v1" />
+                  <input type="text" value={provider.base_url ?? ''} oninput={(e) => { provider.base_url = (e.target as HTMLInputElement).value; }} placeholder="https://api.openai.com/v1" />
                 </div>
                 <div class="input-group">
                   <label>Models (comma-separated)</label>
@@ -342,11 +342,11 @@
                 </div>
                 <div class="input-group">
                   <label>URL / Repository</label>
-                  <input type="text" bind:value={target.url ?? ''} />
+                  <input type="text" value={target.url ?? ''} oninput={(e) => { target.url = (e.target as HTMLInputElement).value; }} />
                 </div>
                 <div class="input-group">
                   <label>Branch</label>
-                  <input type="text" bind:value={target.branch ?? ''} />
+                  <input type="text" value={target.branch ?? ''} oninput={(e) => { target.branch = (e.target as HTMLInputElement).value; }} />
                 </div>
               </div>
             </div>
@@ -389,11 +389,11 @@
             </div>
             <div class="input-group">
               <label>Remote URL</label>
-              <input type="text" bind:value={config.syncConfig.remoteUrl ?? ''} />
+              <input type="text" value={config.syncConfig.remoteUrl ?? ''} oninput={(e) => { config.syncConfig.remoteUrl = (e.target as HTMLInputElement).value; }} />
             </div>
             <div class="input-group">
               <label>Branch</label>
-              <input type="text" bind:value={config.syncConfig.branch ?? ''} />
+              <input type="text" value={config.syncConfig.branch ?? ''} oninput={(e) => { config.syncConfig.branch = (e.target as HTMLInputElement).value; }} />
             </div>
             <div class="input-group">
               <label>Conflict Resolution</label>

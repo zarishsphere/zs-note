@@ -31,9 +31,9 @@ pub struct IndexChunk {
 }
 
 pub struct VectorStore {
-    db_path: PathBuf,
+    _db_path: PathBuf,
     index: Arc<RwLock<HashMap<String, DocumentIndex>>>,
-    table_path: PathBuf,
+    _table_path: PathBuf,
 }
 
 impl VectorStore {
@@ -44,9 +44,9 @@ impl VectorStore {
         std::fs::create_dir_all(&db_path).ok();
 
         Self {
-            db_path,
+            _db_path: db_path,
             index: Arc::new(RwLock::new(HashMap::new())),
-            table_path,
+            _table_path: table_path,
         }
     }
 
