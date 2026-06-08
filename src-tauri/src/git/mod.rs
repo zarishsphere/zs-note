@@ -8,7 +8,6 @@ use anyhow::{Context, Result, bail};
 use chrono::{TimeZone, Utc};
 use git2::{DiffOptions, Oid, Repository, Signature, StatusOptions};
 
-
 use crate::types::{CommitEntry, GitStatus};
 
 pub struct GitEngine {
@@ -130,8 +129,11 @@ impl GitEngine {
                 let mut diff_opts = DiffOptions::new();
                 diff_opts.pathspec(path);
                 let parent_tree = commit.parent(0).ok().and_then(|p| p.tree().ok());
-                let diff =
-                    repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&mut diff_opts))?;
+                let diff = repo.diff_tree_to_tree(
+                    parent_tree.as_ref(),
+                    Some(&tree),
+                    Some(&mut diff_opts),
+                )?;
 
                 if diff.deltas().len() == 0 {
                     continue;
@@ -166,7 +168,8 @@ impl GitEngine {
         let mut diff_opts = DiffOptions::new();
         diff_opts.pathspec(path);
 
-        let diff = repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&mut diff_opts))?;
+        let diff =
+            repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&mut diff_opts))?;
 
         let mut output = String::new();
         diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
@@ -208,7 +211,11 @@ impl GitEngine {
             if let Some(branch_name) = head.shorthand() {
                 if let Ok(branch) = repo.find_branch(branch_name, git2::BranchType::Local) {
                     if let Ok(upstream) = branch.upstream() {
-                        let upstream_oid = upstream.get().peel_to_commit().map(|c| c.id()).unwrap_or(Oid::zero());
+                        let upstream_oid = upstream
+                            .get()
+                            .peel_to_commit()
+                            .map(|c| c.id())
+                            .unwrap_or(Oid::zero());
 
                         let mut revwalk = repo.revwalk()?;
                         revwalk.push(upstream_oid)?;

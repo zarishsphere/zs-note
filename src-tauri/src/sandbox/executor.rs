@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use anyhow::{Context, Result};
-use wasmtime::{Engine, Linker, Module, Store};
 use wasmtime::component::ResourceTable;
+use wasmtime::{Engine, Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
 use crate::sandbox::SandboxError;
@@ -51,8 +51,7 @@ pub fn execute_wasm(
     store.set_fuel(config.memory_limit as u64)?;
 
     let mut linker = Linker::new(engine);
-    wasmtime_wasi::add_to_linker_sync(&mut linker)
-        .context("Failed to add WASI to linker")?;
+    wasmtime_wasi::add_to_linker_sync(&mut linker).context("Failed to add WASI to linker")?;
 
     let instance = linker
         .instantiate(&mut store, &module)

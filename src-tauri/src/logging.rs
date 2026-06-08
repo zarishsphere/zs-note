@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use tracing_appender::rolling;
 use tracing_subscriber::fmt::format::FmtSpan;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SandboxAuditEntry {
     pub timestamp: chrono::DateTime<chrono::Utc>,
