@@ -5,6 +5,9 @@ description = "ZarishNote — a modern note-taking application with sandboxed co
 authors = ["Mohammad Ariful Islam <zarishsphere@gmail.com>"]
 edition = "2024"
 
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
 [lib]
 name = "zs_note_lib"
 crate-type = ["lib", "cdylib", "staticlib"]

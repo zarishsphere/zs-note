@@ -1,19 +1,12 @@
-import type { Ctx } from '@milkdown/core';
+import type { Ctx } from '@milkdown/ctx';
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
 import { history } from '@milkdown/plugin-history';
-import { tooltip } from '@milkdown/plugin-tooltip';
+import { tooltipFactory } from '@milkdown/plugin-tooltip';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { clipboard } from '@milkdown/plugin-clipboard';
 import { cursor } from '@milkdown/plugin-cursor';
-
-declare module '@milkdown/core' {
-  interface Common {
-    zarishNoteOnChange?: (content: string) => void;
-    zarishNoteOnSave?: () => void;
-  }
-}
 
 export interface MilkdownSetupOptions {
   content: string;
@@ -26,8 +19,10 @@ export interface MilkdownSetupOptions {
 export function createMilkdownEditor(options: MilkdownSetupOptions) {
   const { content, readOnly, onChange, onSave, root } = options;
 
+  const tooltip = tooltipFactory('format');
+
   const editor = Editor.make()
-    .config((ctx: Ctx) => {
+    .config((ctx) => {
       ctx.set(rootCtx, root);
       ctx.set(defaultValueCtx, content);
     })
@@ -37,10 +32,11 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
     .use(tooltip)
     .use(clipboard)
     .use(cursor)
-    .use(listener, (ctx: Ctx) => {
+    .use(listener)
+    .config((ctx) => {
       const l = ctx.get(listenerCtx);
 
-      l.markdownUpdated((_ctx: Ctx, markdown: string) => {
+      l.markdownUpdated((_ctx, markdown) => {
         onChange?.(markdown);
       });
 
@@ -50,9 +46,6 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
           view.dom.setAttribute('contenteditable', 'false');
         }
       });
-    })
-    .config((ctx: Ctx) => {
-      const l = ctx.get(listenerCtx);
 
       document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -76,8 +69,7 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
       }
     },
     async setContent(markdown: string) {
-      const { setMarkdown } = await import('@milkdown/utils');
-      editor.action((ctx: Ctx) => {
+      editor.action((ctx) => {
         ctx.set(defaultValueCtx, markdown);
       });
     },

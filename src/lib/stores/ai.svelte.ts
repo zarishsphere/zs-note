@@ -50,7 +50,7 @@ async function sendMessage(input: string): Promise<void> {
 
   try {
     const provider = selectedProvider || providers[0]?.id || '';
-    const model = selectedModel || providers[0]?.defaultModel || '';
+    const model = selectedModel || providers[0]?.default_model || '';
     const result = await aiCommands.aiChat(
       userMessages,
       provider,
@@ -137,7 +137,7 @@ function setProvider(id: string): void {
   selectedProvider = id;
   const prov = providers.find(p => p.id === id);
   if (prov) {
-    selectedModel = prov.defaultModel || prov.models[0] || '';
+    selectedModel = prov.default_model || prov.models[0] || '';
   }
 }
 
@@ -148,8 +148,8 @@ function setModel(model: string): void {
 function setProviders(configs: ProviderConfig[]): void {
   providers = configs;
   if (!selectedProvider && configs.length > 0) {
-    selectedProvider = configs[0].id;
-    selectedModel = configs[0].defaultModel || configs[0].models[0] || '';
+    selectedProvider = configs[0]!.id;
+    selectedModel = configs[0]!.default_model || configs[0]!.models[0] || '';
   }
 }
 
