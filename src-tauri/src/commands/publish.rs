@@ -284,10 +284,7 @@ fn build_rss_xml(
         // Date (RFC 2822)
         if !entry.date.is_empty() {
             if let Ok(parsed) = chrono::NaiveDate::parse_from_str(&entry.date, "%Y-%m-%d") {
-                let dt = parsed
-                    .and_hms_opt(0, 0, 0)
-                    .unwrap()
-                    .and_utc();
+                let dt = parsed.and_hms_opt(0, 0, 0).unwrap().and_utc();
                 write_text_element(&mut writer, "pubDate", &dt.to_rfc2822())?;
             } else {
                 write_text_element(&mut writer, "pubDate", &entry.date)?;
@@ -467,10 +464,7 @@ async fn publish_to_custom_api(
     );
 
     if let Some(frontmatter) = parse_frontmatter(&raw) {
-        payload.insert(
-            "frontmatter".to_string(),
-            Value::Object(frontmatter.0),
-        );
+        payload.insert("frontmatter".to_string(), Value::Object(frontmatter.0));
     }
 
     // Build headers
@@ -669,13 +663,14 @@ async fn upload_to_github(
         return Err(format!(
             "GitHub upload returned {}: {}",
             status,
-            json.get("message").and_then(|v| v.as_str()).unwrap_or("unknown error")
+            json.get("message")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown error")
         ));
     }
 
     // Return the download URL
-    json
-        .get("content")
+    json.get("content")
         .and_then(|c| c.get("download_url"))
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
@@ -717,8 +712,7 @@ async fn upload_to_cloudflare(
         .mime_str("image/png") // default; could be inferred
         .map_err(|e| format!("Failed to create multipart: {}", e))?;
 
-    let form = reqwest::multipart::Form::new()
-        .part("file", part);
+    let form = reqwest::multipart::Form::new().part("file", part);
 
     let client = Client::new();
     let resp = client
@@ -750,8 +744,7 @@ async fn upload_to_cloudflare(
     }
 
     // Return the Cloudflare Images delivery URL
-    json
-        .get("result")
+    json.get("result")
         .and_then(|r| r.get("variants"))
         .and_then(|v| v.as_array())
         .and_then(|arr| arr.first())
