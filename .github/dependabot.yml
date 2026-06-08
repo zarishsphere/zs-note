@@ -15,6 +15,25 @@ updates:
       prefix: deps
       prefix-development: deps(dev)
       include: scope
+    groups:
+      wasmtime:
+        patterns:
+          - "wasmtime*"
+        update-types:
+          - "minor"
+          - "patch"
+      tauri:
+        patterns:
+          - "tauri*"
+        update-types:
+          - "minor"
+          - "patch"
+      cargo-other:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: npm
     directory: /
@@ -32,6 +51,17 @@ updates:
       prefix-development: deps(dev)
       include: scope
     versioning-strategy: increase
+    groups:
+      production-deps:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-deps:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: pip
     directory: /ingestion
@@ -47,6 +77,10 @@ updates:
     commit-message:
       prefix: deps
       include: scope
+    groups:
+      pip-deps:
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
@@ -58,3 +92,7 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
