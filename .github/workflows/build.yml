@@ -20,21 +20,21 @@ jobs:
   build:
     name: Build (${{ matrix.platform }})
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - platform: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            pkg-suffix: AppImage
+            bundles: deb,appimage
           - platform: macos-latest
-            target: x86_64-apple-darwin
-            pkg-suffix: dmg
+            target: aarch64-apple-darwin
+            bundles: dmg
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
-            pkg-suffix: msi
+            bundles: msi,nsis
 
     runs-on: ${{ matrix.platform }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
@@ -63,15 +63,31 @@ jobs:
             libssl-dev libayatana-appindicator3-dev librsvg2-dev \
             libxdo-dev
 
+      - name: Install Windows deps (Wix Toolset)
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          dotnet tool install --global wix --version 5.0.2 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            echo "WiX installation via dotnet failed, trying choco..."
+            choco install wixtoolset --no-progress -y 2>$null
+          }
+
       - run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm tauri build
+      - name: Build (with retry)
+        run: |
+          for i in 1 2 3; do
+            pnpm tauri build --bundles ${{ matrix.bundles }} && break
+            if [ $i -eq 3 ]; then exit 1; fi
+            echo "Build attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ZarishNote-${{ matrix.target }}
@@ -81,7 +97,7 @@ jobs:
     name: Create Release
     needs: [build]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -96,4 +112,6 @@ jobs:
             *.deb
             *.dmg
             *.msi
+            *.exe
+            *.nupkg
           generate_release_notes: true

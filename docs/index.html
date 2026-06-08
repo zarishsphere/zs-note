@@ -1,507 +1,693 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZarishNote — AI-Native Markdown Editor</title>
-  <meta name="description" content="A free, open-source, ultra-lightweight WYSIWYG Markdown editor with a sandboxed private AI assistant.">
-  <meta name="theme-color" content="#7c3aed">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --accent: #7c3aed;
-      --accent-light: #a78bfa;
-      --accent-dark: #5b21b6;
-      --bg: #0f0f1a;
-      --bg-card: #1a1a2e;
-      --bg-card-hover: #222240;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --border: #2d2d4a;
-      --success: #38a169;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>ZarishNote | Edit Private. Think Faster.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        tertiary: "#4edea3", surface: "#0b1326", "on-error-container": "#ffdad6",
+        "on-primary-fixed-variant": "#5516be", secondary: "#4cd7f6",
+        "primary-container": "#a078ff", "tertiary-container": "#00a572",
+        "primary-fixed-dim": "#d0bcff", "on-secondary-container": "#00424e",
+        "surface-variant": "#2d3449", "secondary-container": "#03b5d3",
+        "inverse-on-surface": "#283044", "on-tertiary-fixed": "#002113",
+        background: "#0b1326", primary: "#d0bcff",
+        "on-tertiary-fixed-variant": "#005236", "on-surface-variant": "#cbc3d7",
+        "surface-container-highest": "#2d3449", "on-surface": "#dae2fd",
+        "surface-dim": "#0b1326", "on-primary-container": "#340080",
+        "on-primary-fixed": "#23005c", "surface-container-lowest": "#060e20",
+        outline: "#958ea0", "surface-tint": "#d0bcff", "tertiary-fixed-dim": "#4edea3",
+        "inverse-surface": "#dae2fd", error: "#ffb4ab", "on-secondary-fixed": "#001f26",
+        "outline-variant": "#494454", "surface-container-low": "#131b2e",
+        "surface-container-high": "#222a3d", "on-tertiary-container": "#00311f",
+        "primary-fixed": "#e9ddff", "on-background": "#dae2fd", "on-error": "#690005",
+        "on-secondary": "#003640", "error-container": "#93000a",
+        "surface-container": "#171f33", "surface-bright": "#31394d",
+        "tertiary-fixed": "#6ffbbe", "on-primary": "#3c0091",
+        "secondary-fixed-dim": "#4cd7f6", "inverse-primary": "#6d3bd7",
+        "secondary-fixed": "#acedff", "on-tertiary": "#003824",
+        "on-secondary-fixed-variant": "#004e5c"
+      },
+      borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+      fontFamily: { "headline-lg": ["Inter"], "body-lg": ["Inter"], "headline-md": ["Inter"], "body-md": ["Inter"], "label-sm": ["JetBrains Mono"], "code-md": ["JetBrains Mono"] },
+      fontSize: { "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }], "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }], "headline-md": ["24px", { lineHeight: "1.3", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }], "label-sm": ["12px", { lineHeight: "1.0", letterSpacing: "0.05em", fontWeight: "500" }], "code-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }] }
     }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: var(--accent-light); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: #c4b5fd; }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-    /* Navigation */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: rgba(15,15,26,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      z-index: 100;
-    }
-    nav .container {
-      display: flex; align-items: center; justify-content: space-between;
-      height: 60px;
-    }
-    .nav-logo { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
-    .nav-logo span { color: var(--accent-light); }
-    .nav-links { display: flex; gap: 24px; align-items: center; }
-    .nav-links a { font-size: 14px; font-weight: 500; }
-    .nav-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
-      background: rgba(56,161,105,0.15); color: var(--success);
-    }
-
-    /* Hero */
-    .hero {
-      padding: 160px 0 100px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute; top: -50%; left: 50%; width: 800px; height: 800px;
-      background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
-      transform: translate(-50%, 0);
-      pointer-events: none;
-    }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 500;
-      background: rgba(124,58,237,0.12); color: var(--accent-light);
-      margin-bottom: 24px;
-      border: 1px solid rgba(124,58,237,0.2);
-    }
-    .hero h1 {
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 20px;
-    }
-    .hero h1 span { background: linear-gradient(135deg, var(--accent-light), #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p {
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      color: var(--text-muted);
-      max-width: 600px;
-      margin: 0 auto 40px;
-    }
-    .hero-actions {
-      display: flex; gap: 12px; justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 15px;
-      transition: all 0.2s; cursor: pointer; border: none;
-    }
-    .btn-primary {
-      background: var(--accent); color: white;
-    }
-    .btn-primary:hover {
-      background: var(--accent-dark); transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(124,58,237,0.3);
-    }
-    .btn-secondary {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover {
-      background: var(--bg-card); border-color: var(--accent);
-      transform: translateY(-1px);
-    }
-    .hero-stats {
-      display: flex; gap: 48px; justify-content: center; margin-top: 60px;
-    }
-    .hero-stat { text-align: center; }
-    .hero-stat-value { font-size: 28px; font-weight: 800; color: var(--accent-light); }
-    .hero-stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-
-    /* Sections */
-    section { padding: 80px 0; }
-    .section-header { text-align: center; margin-bottom: 56px; }
-    .section-header h2 { font-size: 2rem; font-weight: 700; margin-bottom: 12px; }
-    .section-header p { color: var(--text-muted); max-width: 500px; margin: 0 auto; }
-
-    /* Features Grid */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .feature-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      transition: all 0.3s;
-      cursor: default;
-    }
-    .feature-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--accent);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    }
-    .feature-icon {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      margin-bottom: 16px;
-      background: rgba(124,58,237,0.12);
-      color: var(--accent-light);
-    }
-    .feature-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-    .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-
-    /* Architecture */
-    .arch-diagram {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px;
-      text-align: center;
-    }
-    .arch-layers {
-      display: flex; flex-direction: column; gap: 16px;
-      position: relative;
-    }
-    .arch-layer {
-      padding: 20px 24px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
-    }
-    .arch-layer:hover {
-      border-color: var(--accent);
-      box-shadow: 0 4px 20px rgba(124,58,237,0.1);
-    }
-    .arch-layer h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-    .arch-layer p { font-size: 13px; color: var(--text-muted); }
-    .arch-layer.frontend { border-color: rgba(167,139,250,0.3); }
-    .arch-layer.backend { border-color: rgba(124,58,237,0.3); }
-    .arch-layer.python { border-color: rgba(56,161,105,0.3); }
-    .arch-arrow {
-      color: var(--text-muted); font-size: 12px;
-      margin: -4px 0; opacity: 0.5;
-    }
-
-    /* Tech Stack */
-    .tech-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-    }
-    .tech-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
-      transition: all 0.2s;
-    }
-    .tech-item:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .tech-item .name { font-size: 13px; font-weight: 600; }
-    .tech-item .version { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-    /* Status Cards */
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-    }
-    .status-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .status-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-    .status-card p { font-size: 13px; color: var(--text-muted); }
-    .status-dot {
-      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-      margin-right: 6px;
-    }
-    .status-dot.green { background: var(--success); }
-    .status-dot.yellow { background: #d69e2e; }
-    .status-dot.red { background: #e53e3e; }
-
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 40px 0;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
-    footer a { color: var(--accent-light); }
-    .footer-links { display: flex; gap: 20px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
-
-    /* Animations */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
-    .animate-delay-1 { animation-delay: 0.1s; }
-    .animate-delay-2 { animation-delay: 0.2s; }
-    .animate-delay-3 { animation-delay: 0.3s; }
-    .animate-delay-4 { animation-delay: 0.4s; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero { padding: 120px 0 60px; }
-      .hero-stats { gap: 24px; flex-wrap: wrap; }
-      .nav-links a:not(.nav-badge) { display: none; }
-    }
-  </style>
+  }
+}
+</script>
+<style>
+  body { background-color: #0b1326; color: #dae2fd; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .glass-card { background: rgba(23, 31, 51, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .ai-glow { box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); }
+  .electric-glow { box-shadow: 0 0 20px rgba(208, 188, 255, 0.2); }
+  .hero-gradient { background: radial-gradient(circle at 50% 50%, rgba(208, 188, 255, 0.08) 0%, rgba(11, 19, 38, 0) 70%); }
+  .sparkline { height: 2px; background: linear-gradient(90deg, transparent, #4cd7f6, transparent); background-size: 200% 100%; animation: spark-flow 2s linear infinite; opacity: 0; transition: opacity 0.5s; }
+  @keyframes spark-flow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  @keyframes pulse-cyan { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .animate-ai-pulse { animation: pulse-cyan 3s infinite ease-in-out; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fade-in 0.5s ease-out forwards; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(208, 188, 255, 0.15); border-radius: 10px; }
+  .active-line-bar { background: #d0bcff; box-shadow: 0 0 8px #d0bcff; }
+  .card-rim { transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s; }
+  .card-rim:hover { border-color: rgba(208, 188, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  .section-link { position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #cbc3d7; transition: color 0.2s; font-family: 'JetBrains Mono', monospace; }
+  .section-link:hover { color: #d0bcff; }
+  .section-link::after { content: '→'; transition: transform 0.2s; }
+  .section-link:hover::after { transform: translateX(4px); }
+</style>
 </head>
-<body>
+<body class="min-h-screen font-body-md text-body-md text-on-surface selection:bg-primary/30">
 
-<nav>
-  <div class="container">
-    <div class="nav-logo">Zarish<span>Note</span></div>
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="docs.html">Docs</a>
-      <a href="#features">Features</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#tech">Tech Stack</a>
-      <a href="#status">Status</a>
-      <a href="https://github.com/zarishsphere/zs-note" target="_blank">GitHub</a>
-      <span class="nav-badge">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;"></span>
-        v0.1.0
-      </span>
-    </div>
+<!-- Top Sparkline -->
+<div class="sparkline fixed top-0 left-0 right-0 z-[60]" id="topSparkline"></div>
+
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full bg-surface/60 backdrop-blur-md flex justify-between items-center px-4 h-16 z-50 border-b border-white/5 shadow-sm">
+  <div class="flex items-center gap-3">
+    <button class="md:hidden p-2 hover:bg-white/5 transition-colors rounded-lg active:scale-95" onclick="toggleSidebar()">
+      <span class="material-symbols-outlined text-primary">menu</span>
+    </button>
+    <span class="font-headline-md text-headline-md-mobile font-bold text-primary">ZarishNote</span>
+  </div>
+  <div class="hidden md:flex items-center gap-1">
+    <a href="#features" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">Features</a>
+    <a href="#docs" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">Docs</a>
+    <a href="#mcp" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">MCP</a>
+    <a href="#api" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">API</a>
+    <a href="#status" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">Status</a>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="https://github.com/zarishsphere/zs-note" target="_blank" class="p-2 hover:bg-white/5 transition-colors rounded-lg active:scale-95">
+      <svg class="w-5 h-5 text-on-surface-variant hover:text-primary" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
   </div>
 </nav>
 
-<section class="hero">
-  <div class="container">
-    <div class="hero-badge">
-      <span>✦</span> Open Source · Free Forever · MIT
+<!-- Overlay for mobile sidebar -->
+<div class="fixed inset-0 bg-black/50 z-40 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="fixed top-16 left-0 h-[calc(100vh-64px)] w-[260px] bg-surface-container border-r border-white/5 z-50 overflow-y-auto transition-transform duration-300 -translate-x-full md:translate-x-0" id="sidebar">
+  <div class="p-4">
+    <div class="flex items-center gap-3 mb-6 px-2">
+      <div class="w-9 h-9 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary/20">
+        <span class="material-symbols-outlined text-primary text-lg">edit_note</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-primary">ZarishNote</p>
+        <p class="text-[10px] text-on-surface-variant font-label-sm">v0.1.0 · Pre-release</p>
+      </div>
     </div>
-    <h1 class="animate">Write with <span>AI</span><br>Own your data</h1>
-    <p class="animate animate-delay-1">
-      An ultra-lightweight WYSIWYG Markdown editor with a sandboxed, private AI assistant — all running on your device.
-    </p>
-    <div class="hero-actions animate animate-delay-2">
-      <a href="https://github.com/zarishsphere/zs-note" class="btn btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        View on GitHub
+
+    <div class="space-y-1 mb-6">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/README.md" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">menu_book</span> Blueprint
       </a>
-      <a href="README.md" class="btn btn-secondary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Read the Spec
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">checklist</span> TODO
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">architecture</span> Architecture
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/003-tech-stack.md" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">memory</span> Tech Stack
       </a>
     </div>
-    <div class="hero-stats animate animate-delay-3">
-      <div class="hero-stat">
-        <div class="hero-stat-value">~12 MB</div>
-        <div class="hero-stat-label">Installer Size</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-value">&lt;15 MB</div>
-        <div class="hero-stat-label">RAM at Idle</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-value">150+</div>
-        <div class="hero-stat-label">Source Files</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-value">30+</div>
-        <div class="hero-stat-label">Commits</div>
-      </div>
+
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Specifications</div>
+    <div class="space-y-1 mb-6">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/001-editor-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">edit_note</span> Editor Spec
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/002-sandbox-engine/001-sandbox-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">shield</span> Sandbox Spec
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/003-ai-engine/001-ai-chat-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">auto_awesome</span> AI Engine
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/004-ingestion-engine/001-ingestion-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">input</span> Ingestion
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/001-mcp-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-primary bg-primary/10 border border-primary/20 transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">api</span> MCP Spec
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/003-knowledge-bases.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">database</span> Knowledge Bases
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/007-publish-sync/001-publish-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">publish</span> Publishing
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/008-plugin-system/001-plugin-spec.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">extension</span> Plugin System
+      </a>
+    </div>
+
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Roadmap</div>
+    <div class="space-y-1">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/001-phase-one.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">looks_one</span> Phase 1 (MVP)
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/002-phase-two.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">looks_two</span> Phase 2 (Full)
+      </a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/003-phase-three.md" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-primary transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">looks_3</span> Phase 3 (Ecosystem)
+      </a>
     </div>
   </div>
-</section>
+</aside>
 
-<section id="features">
-  <div class="container">
-    <div class="section-header">
-      <h2>Everything in one editor</h2>
-      <p>From WYSIWYG Markdown to private AI — no app switching required.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">✎</div>
-        <h3>WYSIWYG + Source + Split</h3>
-        <p>Three viewing modes with Milkdown 7 (ProseMirror). Full GFM support, KaTeX math, Mermaid diagrams.</p>
+<!-- Main Content -->
+<div class="md:ml-[260px] pt-16">
+  <!-- Hero Section -->
+  <section class="hero-gradient min-h-[80vh] flex flex-col justify-center px-4 md:px-8 py-20 relative overflow-hidden">
+    <div class="max-w-3xl mx-auto w-full text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-label-sm mb-8">
+        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL'1">verified</span>
+        Open Source · Free Forever · MIT
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">◇</div>
-        <h3>Sandboxed AI</h3>
-        <p>OpenAI, Claude, Gemini, Ollama — all through Wasmtime. Every tool is isolated with capability-based security.</p>
+      <h1 class="font-headline-lg text-headline-lg mb-4 tracking-tight leading-tight">
+        Edit <span class="text-primary">Private.</span><br/>
+        Think <span class="text-secondary">Faster.</span>
+      </h1>
+      <p class="text-on-surface-variant font-body-lg text-body-lg max-w-lg mx-auto mb-10">
+        The local-first Markdown vault with sandboxed AI orchestration for researchers, developers, and power users.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        <a href="https://github.com/zarishsphere/zs-note" target="_blank" class="inline-flex items-center justify-center gap-2 bg-primary-container text-on-primary-container px-8 py-4 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/10">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL'1">star</span>
+          Star on GitHub
+        </a>
+        <a href="https://github.com/zarishsphere/zs-note/releases" target="_blank" class="inline-flex items-center justify-center gap-2 border border-secondary/40 text-secondary px-8 py-4 rounded-xl font-bold glass-panel hover:bg-white/5 active:scale-95 transition-all">
+          <span class="material-symbols-outlined">download</span>
+          Download v0.1.0
+        </a>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">⊞</div>
-        <h3>Document Ingestion</h3>
-        <p>PDF, DOCX, PPTX, XLSX, EPUB, YouTube, Wikipedia, RSS → Markdown via Python MarkItDown.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">↔</div>
-        <h3>MCP Integration</h3>
-        <p>First-class MCP client with stdio and HTTP transports. Connect GitHub, databases, and custom tools.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">♯</div>
-        <h3>Git Version Control</h3>
-        <p>Auto-commit on every save. Browse history, view diffs, push to GitHub — all from within the editor.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Private by Design</h3>
-        <p>No intermediary servers. Your prompts go directly to your chosen provider. Zero telemetry. Offline-first.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section id="architecture" style="background: var(--bg-card);">
-  <div class="container">
-    <div class="section-header">
-      <h2>Architecture</h2>
-      <p>A three-layer design built on Tauri v2.</p>
-    </div>
-    <div class="arch-diagram">
-      <div class="arch-layers">
-        <div class="arch-layer frontend">
-          <h4>🖥  Svelte 5 Frontend</h4>
-          <p>Reactive UI · Milkdown 7 Editor · AI Panel · File Tree · Git Browser · MCP Manager</p>
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        <div class="glass-panel p-4 rounded-xl text-center">
+          <div class="text-primary font-headline-md text-headline-md mb-1">~12 MB</div>
+          <div class="text-on-surface-variant text-xs font-label-sm uppercase tracking-widest">Installer</div>
         </div>
-        <div class="arch-arrow">▼ Tauri IPC (invoke)</div>
-        <div class="arch-layer backend">
-          <h4>⚙  Rust Backend (Tauri v2)</h4>
-          <p>Commands · Wasmtime Sandbox · AI Providers · Git Engine · Vector Store · MCP Router</p>
+        <div class="glass-panel p-4 rounded-xl text-center">
+          <div class="text-secondary font-headline-md text-headline-md mb-1">&lt;15 MB</div>
+          <div class="text-on-surface-variant text-xs font-label-sm uppercase tracking-widest">RAM Idle</div>
         </div>
-        <div class="arch-arrow">▼ Subprocess</div>
-        <div class="arch-layer python">
-          <h4>🐍 Python Ingestion Engine</h4>
-          <p>MarkItDown + 12 Custom Converters · PDF · DOCX · YouTube · Wikipedia · RSS</p>
+        <div class="glass-panel p-4 rounded-xl text-center">
+          <div class="text-primary font-headline-md text-headline-md mb-1">150+</div>
+          <div class="text-on-surface-variant text-xs font-label-sm uppercase tracking-widest">Source Files</div>
+        </div>
+        <div class="glass-panel p-4 rounded-xl text-center">
+          <div class="text-tertiary font-headline-md text-headline-md mb-1">34</div>
+          <div class="text-on-surface-variant text-xs font-label-sm uppercase tracking-widest">Commits</div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="tech">
-  <div class="container">
-    <div class="section-header">
-      <h2>Tech Stack</h2>
-      <p>Modern, lean, and principled.</p>
+  <!-- Features Section -->
+  <section id="features" class="px-4 md:px-8 py-20 max-w-5xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="font-headline-md text-headline-md mb-3">Core Architecture</h2>
+      <p class="text-on-surface-variant">Built on Tauri v2 with Rust, Svelte 5, and Wasmtime.</p>
     </div>
-    <div class="tech-grid">
-      <div class="tech-item"><div class="name">Tauri</div><div class="version">v2.11+</div></div>
-      <div class="tech-item"><div class="name">Svelte</div><div class="version">5.x</div></div>
-      <div class="tech-item"><div class="name">Rust</div><div class="version">2024 edition</div></div>
-      <div class="tech-item"><div class="name">TypeScript</div><div class="version">6.x</div></div>
-      <div class="tech-item"><div class="name">Milkdown</div><div class="version">7.x</div></div>
-      <div class="tech-item"><div class="name">Wasmtime</div><div class="version">45.x</div></div>
-      <div class="tech-item"><div class="name">LanceDB</div><div class="version">embedded</div></div>
-      <div class="tech-item"><div class="name">pnpm</div><div class="version">11.x</div></div>
-      <div class="tech-item"><div class="name">Vite</div><div class="version">8.x</div></div>
-      <div class="tech-item"><div class="name">Shiki</div><div class="version">1.x</div></div>
-      <div class="tech-item"><div class="name">Mermaid</div><div class="version">11.x</div></div>
-      <div class="tech-item"><div class="name">KaTeX</div><div class="version">0.17</div></div>
-    </div>
-  </div>
-</section>
+    <div class="grid md:grid-cols-2 gap-4">
+      <!-- Ultra-lightweight -->
+      <div class="glass-panel p-6 rounded-xl card-rim group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-primary-container/10 rounded-lg text-primary">
+            <span class="material-symbols-outlined text-3xl">speed</span>
+          </div>
+          <span class="font-label-sm text-[10px] text-primary uppercase tracking-widest opacity-60">Performance</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md-mobile mb-2">Ultra-lightweight</h3>
+        <p class="text-on-surface-variant text-sm">Zero-dependency core engine. Boot sequence under 200ms. ~12MB installer, &lt;15MB RAM at idle.</p>
+        <div class="mt-4 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+          <div class="h-full bg-primary w-1/3 group-hover:w-full transition-all duration-1000"></div>
+        </div>
+      </div>
 
-<section id="status">
-  <div class="container">
-    <div class="section-header">
-      <h2>Build Status</h2>
-      <p>All CI checks passing across three platforms.</p>
-    </div>
-    <div class="status-grid">
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>Format</h4>
-        <p><code>cargo fmt --check</code> — passes</p>
+      <!-- Sandboxed AI -->
+      <div class="glass-panel p-6 rounded-xl card-rim ai-glow border-secondary/20 relative group">
+        <div class="absolute top-0 left-0 w-full h-[2px] bg-secondary animate-ai-pulse"></div>
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-secondary-container/10 rounded-lg text-secondary">
+            <span class="material-symbols-outlined text-3xl">auto_awesome</span>
+          </div>
+          <span class="font-label-sm text-[10px] text-secondary uppercase tracking-widest opacity-60">Privacy</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md-mobile mb-2">Sandboxed AI</h3>
+        <p class="text-on-surface-variant text-sm">Your data never leaves your device. OpenAI, Claude, Gemini, Ollama — all through Wasmtime isolation.</p>
+        <div class="mt-4 flex gap-2">
+          <span class="px-2 py-1 bg-secondary/10 border border-secondary/20 rounded-md text-[10px] font-label-sm text-secondary">LOCAL_ONLY</span>
+          <span class="px-2 py-1 bg-secondary/10 border border-secondary/20 rounded-md text-[10px] font-label-sm text-secondary">SANDBOXED</span>
+        </div>
       </div>
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>Lint</h4>
-        <p><code>cargo clippy</code> — passes (warnings allowed)</p>
-      </div>
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>Tests</h4>
-        <p><code>cargo test</code> — 8/8 pass</p>
-      </div>
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>TypeScript</h4>
-        <p><code>pnpm typecheck</code> — passes</p>
-      </div>
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>Python</h4>
-        <p><code>ruff</code> — passes</p>
-      </div>
-      <div class="status-card">
-        <h4><span class="status-dot green"></span>Spell Check</h4>
-        <p><code>typos</code> — passes</p>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:32px;">
-      <a href="https://github.com/zarishsphere/zs-note/actions" class="btn btn-secondary" target="_blank">
-        View CI Pipeline →
-      </a>
-    </div>
-  </div>
-</section>
 
-<section id="repos" style="background: var(--bg-card);">
-  <div class="container">
-    <div class="section-header">
-      <h2>Single Repository</h2>
-      <p>Code and specifications live together.</p>
-    </div>
-    <div class="features-grid" style="max-width: 500px; margin: 0 auto;">
-      <a href="https://github.com/zarishsphere/zs-note" class="feature-card" style="display:block;text-decoration:none;color:inherit;">
-        <div class="feature-icon" style="background:rgba(56,161,105,0.12);color:var(--success);">&lt;/&gt;</div>
-        <h3>zarishsphere/zs-note</h3>
-        <p>Source code (Rust + Svelte + Python) + complete blueprint specifications in <code>docs/</code>. One repo, everything you need.</p>
-      </a>
-    </div>
-  </div>
-</section>
+      <!-- Git Native -->
+      <div class="glass-panel p-6 rounded-xl card-rim group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-tertiary-container/10 rounded-lg text-tertiary">
+            <span class="material-symbols-outlined text-3xl">account_tree</span>
+          </div>
+          <span class="font-label-sm text-[10px] text-tertiary uppercase tracking-widest opacity-60">Workflow</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md-mobile mb-2">Git Native</h3>
+        <p class="text-on-surface-variant text-sm">Version control baked in. Auto-commit on save, branching for experiments, commit history browser.</p>
+        <div class="mt-4 flex items-center gap-2 font-code-md text-xs text-on-surface-variant bg-surface-container-low p-3 rounded-lg">
+          <span class="text-tertiary">$</span>
+          <span>git commit -m "Capture thought"</span>
+        </div>
+      </div>
 
-<footer>
-  <div class="container">
-    <div class="footer-links">
-      <a href="https://github.com/zarishsphere">GitHub Organization</a>
-      <a href="https://github.com/zarishsphere/zs-note">Source Code</a>
-      <a href="https://github.com/zarishsphere/zs-note/issues">Issues</a>
-      <a href="README.md">Blueprint Spec</a>
+      <!-- MCP Integration -->
+      <div class="glass-panel p-6 rounded-xl card-rim group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-primary-container/10 rounded-lg text-primary">
+            <span class="material-symbols-outlined text-3xl">api</span>
+          </div>
+          <span class="font-label-sm text-[10px] text-primary uppercase tracking-widest opacity-60">Protocol</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md-mobile mb-2">MCP Integration</h3>
+        <p class="text-on-surface-variant text-sm">First-class MCP client with stdio and HTTP transports. Connect GitHub, databases, and custom tools.</p>
+        <div class="mt-4 flex gap-2">
+          <span class="px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] font-label-sm text-primary">JSON-RPC</span>
+          <span class="px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] font-label-sm text-primary">SSE</span>
+        </div>
+      </div>
     </div>
-    <p>Built by ZarishSphere Foundation · Licensed under Apache 2.0 (code) · CC BY 4.0 (documentation)</p>
-  </div>
-</footer>
+  </section>
+
+  <!-- MCP Section -->
+  <section id="mcp" class="px-4 md:px-8 py-20 bg-surface-container/50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-xs font-label-sm mb-4">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL'1">api</span>
+          Protocol
+        </div>
+        <h2 class="font-headline-md text-headline-md mb-3">Model Context Protocol</h2>
+        <p class="text-on-surface-variant">Connect ZarishNote to any MCP-compatible server — all from within the sandbox.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mb-8">
+        <div class="glass-card p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary">terminal</span>
+            </div>
+            <h3 class="font-bold text-sm">Stdio Transport</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs leading-relaxed">Spawn MCP servers as subprocesses. JSON-RPC 2.0 over stdin/stdout with streaming responses.</p>
+          <div class="mt-3 font-code-md text-[11px] bg-surface-container-lowest p-3 rounded-lg text-on-surface-variant">
+            <span class="text-tertiary">mcp_server</span>.json <span class="text-secondary">→</span> <span class="text-primary">stdio</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">wifi</span>
+            </div>
+            <h3 class="font-bold text-sm">HTTP/SSE Transport</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs leading-relaxed">Connect to remote MCP servers via Server-Sent Events. Full duplex communication.</p>
+          <div class="mt-3 font-code-md text-[11px] bg-surface-container-lowest p-3 rounded-lg text-on-surface-variant">
+            <span class="text-tertiary">POST</span> /mcp/messages <span class="text-secondary">→</span> <span class="text-primary">SSE</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary">lock</span>
+            </div>
+            <h3 class="font-bold text-sm">Capability Model</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs leading-relaxed">Per-tool capability enforcement. Network allow-lists, filesystem scoping, resource limits.</p>
+          <div class="mt-3 font-code-md text-[11px] bg-surface-container-lowest p-3 rounded-lg text-on-surface-variant">
+            <span class="text-tertiary">capabilities</span>.toml <span class="text-secondary">→</span> <span class="text-primary">Wasmtime</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 rounded-xl">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 class="font-bold text-sm mb-1">MCP Server Configuration</h3>
+            <p class="text-on-surface-variant text-xs">Configure in `.znrc` or through the Settings GUI.</p>
+          </div>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/001-mcp-spec.md" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/20 text-primary rounded-lg text-sm font-bold hover:brightness-110 transition-all border border-primary/20">
+            <span class="material-symbols-outlined text-sm">description</span>
+            Read MCP Spec
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / Schema Section -->
+  <section id="api" class="px-4 md:px-8 py-20">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-label-sm mb-4">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL'1">schema</span>
+          Reference
+        </div>
+        <h2 class="font-headline-md text-headline-md mb-3">Schemas &amp; APIs</h2>
+        <p class="text-on-surface-variant">Everything is defined as code — from workspace config to plugin manifests.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">settings</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">.znrc Schema</h3>
+              <p class="text-on-surface-variant text-[11px]">Workspace configuration</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">YAML-based workspace config defining AI providers, MCP servers, sandbox capabilities, and editor preferences.</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/003-znrc-schema.md" class="section-link text-xs">View Schema</a>
+        </div>
+
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary">extension</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Plugin Manifest</h3>
+              <p class="text-on-surface-variant text-[11px]">WASM plugin API</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">WebAssembly-based plugin system with capability declarations, resource limits, and marketplace integration.</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/008-plugin-system/001-plugin-spec.md" class="section-link text-xs">View Plugin Spec</a>
+        </div>
+
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary">database</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Knowledge Base RAG</h3>
+              <p class="text-on-surface-variant text-[11px]">Vector store + embeddings</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">Local vector store index with keyword + semantic search. Embeddings via FastEmbed, storage via in-memory HashMap (LanceDB pending).</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/003-knowledge-bases.md" class="section-link text-xs">View Knowledge Base Spec</a>
+        </div>
+
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">publish</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Publishing API</h3>
+              <p class="text-on-surface-variant text-[11px]">GitHub + Custom endpoints</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">One-click publish to GitHub repos, custom API endpoints, RSS feed generation, and image hosting (GitHub/Cloudflare).</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/007-publish-sync/001-publish-spec.md" class="section-link text-xs">View Publishing Spec</a>
+        </div>
+
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary">input</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Ingestion Format Matrix</h3>
+              <p class="text-on-surface-variant text-[11px]">20+ document formats</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">PDF, DOCX, PPTX, XLSX, EPUB, HTML, CSV, Jupyter, YouTube, Wikipedia, RSS, SERP → Markdown via MarkItDown.</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/004-ingestion-engine/002-format-matrix.md" class="section-link text-xs">View Format Matrix</a>
+        </div>
+
+        <div class="glass-panel p-6 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary">security</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Security Model</h3>
+              <p class="text-on-surface-variant text-[11px]">Threat model + sandbox</p>
+            </div>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-4">STRIDE threat analysis, responsible disclosure policy, Wasmtime sandbox implementation with resource limits.</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/001-threat-model.md" class="section-link text-xs">View Security Docs</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Docs Section -->
+  <section id="docs" class="px-4 md:px-8 py-20 bg-surface-container/50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="font-headline-md text-headline-md mb-3">Browse the Blueprint</h2>
+        <p class="text-on-surface-variant">39 specification documents across 7 categories.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-primary">lightbulb</span>
+            <h3 class="font-bold text-sm">Concept</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">Vision, personas, value proposition, glossary</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/001-vision.md" class="section-link text-xs">Read Vision</a>
+        </div>
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-secondary">description</span>
+            <h3 class="font-bold text-sm">Specifications</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">12 specs across 8 feature groups</p>
+          <a href="https://github.com/zarishsphere/zs-note/tree/main/docs/002-specifications" class="section-link text-xs">Browse Specs</a>
+        </div>
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-tertiary">account_tree</span>
+            <h3 class="font-bold text-sm">Architecture</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">System design, directory layout, tech stack</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="section-link text-xs">View Architecture</a>
+        </div>
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-primary">security</span>
+            <h3 class="font-bold text-sm">Security</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">Threat model, security policy, sandbox</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/001-threat-model.md" class="section-link text-xs">View Security</a>
+        </div>
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-secondary">map</span>
+            <h3 class="font-bold text-sm">Roadmap</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">Phase 1-3 with progress tracking</p>
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="section-link text-xs">View TODO</a>
+        </div>
+        <div class="glass-panel p-5 rounded-xl card-rim">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-tertiary">inventory_2</span>
+            <h3 class="font-bold text-sm">Assets &amp; Prototypes</h3>
+          </div>
+          <p class="text-on-surface-variant text-xs mb-3">JDs, brand guidelines, .znrc examples</p>
+          <a href="https://github.com/zarishsphere/zs-note/tree/main/docs/007-prototypes" class="section-link text-xs">View Prototypes</a>
+        </div>
+      </div>
+
+      <div class="text-center mt-8">
+        <a href="docs.html" class="inline-flex items-center gap-2 px-6 py-3 bg-primary-container/20 text-primary rounded-xl font-bold hover:brightness-110 transition-all border border-primary/20">
+          <span class="material-symbols-outlined">menu_book</span>
+          Full Documentation Browser
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build Status Section -->
+  <section id="status" class="px-4 md:px-8 py-20">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="font-headline-md text-headline-md mb-3">Build Status</h2>
+        <p class="text-on-surface-variant">All CI checks passing across Linux, macOS, and Windows.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">Format</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">cargo fmt —check</p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">Lint</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">cargo clippy</p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">Tests</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">8/8 pass</p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">TypeScript</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">pnpm typecheck</p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">Python</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">ruff lint</p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            <span class="font-bold text-sm">Spell Check</span>
+          </div>
+          <p class="text-on-surface-variant text-xs font-code-md">typos</p>
+        </div>
+      </div>
+      <div class="text-center mt-8">
+        <a href="https://github.com/zarishsphere/zs-note/actions" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 border border-white/10 text-on-surface-variant rounded-lg text-sm hover:bg-white/5 transition-all">
+          <span class="material-symbols-outlined text-sm">open_in_new</span>
+          View CI Pipeline
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 px-4 md:px-8 py-8">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex flex-wrap justify-center gap-6 mb-6">
+        <a href="https://github.com/zarishsphere" class="text-xs text-on-surface-variant hover:text-primary transition-colors">ZarishSphere Organization</a>
+        <a href="https://github.com/zarishsphere/zs-note" class="text-xs text-on-surface-variant hover:text-primary transition-colors">Source Code</a>
+        <a href="https://github.com/zarishsphere/zs-note/issues" class="text-xs text-on-surface-variant hover:text-primary transition-colors">Issues</a>
+        <a href="https://github.com/zarishsphere/zs-note/security" class="text-xs text-on-surface-variant hover:text-primary transition-colors">Security</a>
+      </div>
+      <div class="text-center">
+        <p class="text-xs text-on-surface-variant/60">Built by <a href="https://github.com/zarishsphere" class="text-primary hover:text-primary-container transition-colors">ZarishSphere Foundation</a> · Apache 2.0 (code) · CC BY 4.0 (docs)</p>
+        <p class="text-xs text-on-surface-variant/40 mt-2">
+          <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/README.md" class="hover:text-primary transition-colors">Blueprint</a>
+          · <a href="https://zarishsphere.github.io/zs-note/" class="hover:text-primary transition-colors">GitHub Pages</a>
+          · <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="hover:text-primary transition-colors">TODO</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface/60 backdrop-blur-md border-t border-white/5 flex justify-around items-center px-4 py-2 pb-safe z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.1)]">
+  <a href="#features" class="flex flex-col items-center text-on-surface-variant hover:text-primary active:scale-90 transition-all">
+    <span class="material-symbols-outlined">grid_view</span>
+    <span class="font-label-sm text-[10px] mt-0.5">Features</span>
+  </a>
+  <a href="#docs" class="flex flex-col items-center text-on-surface-variant hover:text-primary active:scale-90 transition-all">
+    <span class="material-symbols-outlined">menu_book</span>
+    <span class="font-label-sm text-[10px] mt-0.5">Docs</span>
+  </a>
+  <a href="https://github.com/zarishsphere/zs-note" class="flex flex-col items-center text-primary bg-primary-container/20 rounded-xl px-4 py-1 active:scale-90 transition-all">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL'1">code</span>
+    <span class="font-label-sm text-[10px] mt-0.5">Code</span>
+  </a>
+  <a href="#mcp" class="flex flex-col items-center text-on-surface-variant hover:text-primary active:scale-90 transition-all">
+    <span class="material-symbols-outlined">api</span>
+    <span class="font-label-sm text-[10px] mt-0.5">MCP</span>
+  </a>
+  <a href="#status" class="flex flex-col items-center text-on-surface-variant hover:text-primary active:scale-90 transition-all">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span class="font-label-sm text-[10px] mt-0.5">Status</span>
+  </a>
+</nav>
 
 <script>
-  // Intersection Observer for scroll animations
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+  }
+
+  // Handle active navigation links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      // Close mobile nav
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (!sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    });
+  });
+
+  // AI Sparkline effect
+  const sparkline = document.getElementById('topSparkline');
+  setInterval(() => {
+    sparkline.style.opacity = Math.random() > 0.6 ? '1' : '0';
+    setTimeout(() => { sparkline.style.opacity = '0'; }, 2000);
+  }, 5000);
+
+  // Intersection Observer for fade-in
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
+        entry.target.classList.add('fade-in');
       }
     });
   }, { threshold: 0.1 });
-
-  document.querySelectorAll('.feature-card, .tech-item, .status-card, .arch-layer').forEach(el => {
+  document.querySelectorAll('.glass-panel, .glass-card').forEach(el => {
     el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
     observer.observe(el);
+  });
+
+  // Hover rim light for glass cards
+  document.querySelectorAll('.glass-panel, .glass-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+      card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      card.style.borderColor = 'rgba(208, 188, 255, 0.15)';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+    });
   });
 </script>
 

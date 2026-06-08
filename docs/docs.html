@@ -1,581 +1,273 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docs — ZarishNote Blueprint</title>
-  <meta name="description" content="Complete specification documentation for ZarishNote.">
-  <meta name="theme-color" content="#7c3aed">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --accent: #7c3aed;
-      --accent-light: #a78bfa;
-      --accent-dark: #5b21b6;
-      --bg: #0f0f1a;
-      --bg-card: #1a1a2e;
-      --bg-card-hover: #222240;
-      --sidebar-bg: #14142b;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --border: #2d2d4a;
-      --success: #38a169;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-      --sidebar-width: 300px;
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Docs — ZarishNote Blueprint</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        tertiary: "#4edea3", surface: "#0b1326", "on-error-container": "#ffdad6",
+        "on-primary-fixed-variant": "#5516be", secondary: "#4cd7f6",
+        "primary-container": "#a078ff", "tertiary-container": "#00a572",
+        "primary-fixed-dim": "#d0bcff", "on-secondary-container": "#00424e",
+        "surface-variant": "#2d3449", "secondary-container": "#03b5d3",
+        "inverse-on-surface": "#283044", "on-tertiary-fixed": "#002113",
+        background: "#0b1326", primary: "#d0bcff",
+        "on-tertiary-fixed-variant": "#005236", "on-surface-variant": "#cbc3d7",
+        "surface-container-highest": "#2d3449", "on-surface": "#dae2fd",
+        "surface-dim": "#0b1326", "on-primary-container": "#340080",
+        "on-primary-fixed": "#23005c", "surface-container-lowest": "#060e20",
+        outline: "#958ea0", "surface-tint": "#d0bcff", "tertiary-fixed-dim": "#4edea3",
+        "inverse-surface": "#dae2fd", error: "#ffb4ab", "on-secondary-fixed": "#001f26",
+        "outline-variant": "#494454", "surface-container-low": "#131b2e",
+        "surface-container-high": "#222a3d", "on-tertiary-container": "#00311f",
+        "primary-fixed": "#e9ddff", "on-background": "#dae2fd", "on-error": "#690005",
+        "on-secondary": "#003640", "error-container": "#93000a",
+        "surface-container": "#171f33", "surface-bright": "#31394d",
+        "tertiary-fixed": "#6ffbbe", "on-primary": "#3c0091",
+        "secondary-fixed-dim": "#4cd7f6", "inverse-primary": "#6d3bd7",
+        "secondary-fixed": "#acedff", "on-tertiary": "#003824",
+        "on-secondary-fixed-variant": "#004e5c"
+      },
+      borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+      fontFamily: { "headline-lg": ["Inter"], "body-lg": ["Inter"], "headline-md": ["Inter"], "body-md": ["Inter"], "label-sm": ["JetBrains Mono"], "code-md": ["JetBrains Mono"] },
+      fontSize: { "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }], "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }], "headline-md": ["24px", { lineHeight: "1.3", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }], "label-sm": ["12px", { lineHeight: "1.0", letterSpacing: "0.05em", fontWeight: "500" }], "code-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }] }
     }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      display: flex;
-    }
-    a { color: var(--accent-light); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: #c4b5fd; }
-
-    /* Top Navigation Bar */
-    .topnav {
-      position: fixed; top: 0; left: 0; right: 0; height: 56px;
-      background: rgba(15,15,26,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      z-index: 200;
-      display: flex; align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-    }
-    .topnav .menu-btn {
-      display: none;
-      background: none; border: none; color: var(--text);
-      font-size: 20px; cursor: pointer; padding: 8px;
-    }
-    .topnav .logo { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
-    .topnav .logo span { color: var(--accent-light); }
-    .topnav .nav-links { margin-left: auto; display: flex; gap: 16px; align-items: center; }
-    .topnav .nav-links a { font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: background 0.2s; }
-    .topnav .nav-links a:hover { background: var(--bg-card); }
-    .topnav .nav-links a.active { background: rgba(124,58,237,0.15); color: var(--accent-light); }
-    .search-box {
-      display: flex; align-items: center;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0 12px;
-      height: 34px; width: 200px;
-      transition: border-color 0.2s, width 0.3s;
-    }
-    .search-box:focus-within { border-color: var(--accent); width: 260px; }
-    .search-box input {
-      background: none; border: none; color: var(--text);
-      font-size: 13px; width: 100%; outline: none;
-      font-family: var(--font-sans);
-    }
-    .search-box input::placeholder { color: var(--text-muted); }
-    .search-box .icon { color: var(--text-muted); font-size: 14px; margin-right: 8px; }
-
-    /* Sidebar */
-    .sidebar {
-      position: fixed; top: 56px; left: 0; bottom: 0;
-      width: var(--sidebar-width);
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      z-index: 100;
-      padding: 12px 0;
-      transition: transform 0.3s ease;
-    }
-    .sidebar::-webkit-scrollbar { width: 6px; }
-    .sidebar::-webkit-scrollbar-track { background: transparent; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    .sidebar-section { margin-bottom: 4px; }
-    .sidebar-section-header {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.05em; color: var(--text-muted); cursor: pointer;
-      user-select: none; transition: color 0.2s;
-    }
-    .sidebar-section-header:hover { color: var(--text); }
-    .sidebar-section-header .arrow {
-      font-size: 10px; transition: transform 0.2s; display: inline-block;
-    }
-    .sidebar-section-header .arrow.collapsed { transform: rotate(-90deg); }
-    .sidebar-link {
-      display: block; padding: 6px 16px 6px 28px;
-      font-size: 13px; color: var(--text-muted);
-      transition: all 0.15s; border-left: 2px solid transparent;
-      text-decoration: none;
-    }
-    .sidebar-link:hover {
-      color: var(--text); background: rgba(124,58,237,0.06);
-      border-left-color: var(--accent-light);
-    }
-    .sidebar-link.active {
-      color: var(--accent-light); background: rgba(124,58,237,0.1);
-      border-left-color: var(--accent);
-    }
-    .sidebar-link .badge {
-      display: inline-block; font-size: 10px; padding: 1px 6px;
-      border-radius: 4px; margin-left: 6px; font-weight: 600;
-    }
-    .sidebar-link .badge.spec { background: rgba(167,139,250,0.15); color: var(--accent-light); }
-    .sidebar-link .badge.doc { background: rgba(56,161,105,0.15); color: var(--success); }
-    .sidebar-link .badge.roadmap { background: rgba(214,158,46,0.15); color: #d69e2e; }
-
-    /* Main Content */
-    .main {
-      margin-left: var(--sidebar-width);
-      margin-top: 56px;
-      padding: 32px 48px;
-      flex: 1;
-      min-height: calc(100vh - 56px);
-    }
-    .main h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
-    .main h1 span { background: linear-gradient(135deg, var(--accent-light), #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .main .subtitle { color: var(--text-muted); font-size: 1rem; margin-bottom: 32px; }
-    .main .meta { font-size: 13px; color: var(--text-muted); margin-bottom: 40px; }
-    .main .meta span { margin-right: 20px; }
-
-    .overview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-bottom: 48px;
-    }
-    .overview-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      transition: all 0.3s;
-    }
-    .overview-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    }
-    .overview-card .count {
-      font-size: 28px; font-weight: 800; color: var(--accent-light);
-    }
-    .overview-card .label { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
-    .overview-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 8px; opacity: 0.8; }
-
-    .doc-section { margin-bottom: 40px; }
-    .doc-section h2 {
-      font-size: 1.3rem; font-weight: 700; margin-bottom: 16px;
-      padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    }
-    .doc-list { display: flex; flex-direction: column; gap: 8px; }
-    .doc-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      transition: all 0.2s;
-    }
-    .doc-item:hover {
-      border-color: var(--accent); background: var(--bg-card-hover);
-      transform: translateX(4px);
-    }
-    .doc-item .icon {
-      width: 36px; height: 36px; border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
-    }
-    .doc-item .icon.spec-icon { background: rgba(167,139,250,0.12); color: var(--accent-light); }
-    .doc-item .icon.arch-icon { background: rgba(56,161,105,0.12); color: var(--success); }
-    .doc-item .icon.roadmap-icon { background: rgba(214,158,46,0.12); color: #d69e2e; }
-    .doc-item .icon.sec-icon { background: rgba(229,62,62,0.12); color: #fc8181; }
-    .doc-item .info { flex: 1; min-width: 0; }
-    .doc-item .info .title { font-size: 14px; font-weight: 600; }
-    .doc-item .info .desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .doc-item .link-icon { color: var(--text-muted); font-size: 14px; flex-shrink: 0; }
-
-    .progress-bar {
-      background: var(--bg-card); border-radius: 8px; padding: 20px;
-      border: 1px solid var(--border);
-    }
-    .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .progress-row:last-child { margin-bottom: 0; }
-    .progress-label { font-size: 13px; font-weight: 600; width: 120px; flex-shrink: 0; }
-    .progress-track {
-      flex: 1; height: 8px; background: var(--bg); border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; border-radius: 4px; transition: width 0.8s ease;
-    }
-    .progress-fill.green { background: var(--success); }
-    .progress-fill.yellow { background: #d69e2e; }
-    .progress-fill.red { background: #e53e3e; }
-    .progress-pct { font-size: 12px; color: var(--text-muted); width: 40px; text-align: right; }
-
-    .footer-bar {
-      margin-top: 48px; padding-top: 24px;
-      border-top: 1px solid var(--border);
-      text-align: center; color: var(--text-muted); font-size: 13px;
-    }
-    .footer-bar a { color: var(--accent-light); }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-      .sidebar.open {
-        transform: translateX(0);
-      }
-      .topnav .menu-btn { display: block; }
-      .topnav .search-box { width: 140px; }
-      .topnav .search-box:focus-within { width: 180px; }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .overview-grid { grid-template-columns: 1fr 1fr; }
-      .topnav .nav-links a:not(.active) { display: none; }
-    }
-    @media (max-width: 480px) {
-      .overview-grid { grid-template-columns: 1fr; }
-    }
-
-    /* Overlay for mobile sidebar */
-    .sidebar-overlay {
-      display: none;
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      z-index: 99;
-    }
-    .sidebar-overlay.show { display: block; }
-    @media (min-width: 769px) {
-      .sidebar-overlay { display: none !important; }
-    }
-  </style>
+  }
+}
+</script>
+<style>
+  body { background-color: #0b1326; color: #dae2fd; -webkit-font-smoothing: antialiased; }
+  .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .glass-card { background: rgba(23, 31, 51, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .card-rim { transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s; }
+  .card-rim:hover { border-color: rgba(208, 188, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  .sparkline { height: 2px; background: linear-gradient(90deg, transparent, #4cd7f6, transparent); background-size: 200% 100%; animation: spark-flow 2s linear infinite; }
+  @keyframes spark-flow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .sidebar-link { display: block; padding: 6px 16px 6px 28px; font-size: 13px; color: #cbc3d7; transition: all 0.15s; border-left: 2px solid transparent; text-decoration: none; }
+  .sidebar-link:hover { color: #d0bcff; background: rgba(208,188,255,0.06); border-left-color: #d0bcff; }
+  .sidebar-link.active { color: #d0bcff; background: rgba(208,188,255,0.1); border-left-color: #d0bcff; }
+  .badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-right: 6px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .badge.spec { background: rgba(208,188,255,0.15); color: #d0bcff; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(208, 188, 255, 0.15); border-radius: 10px; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fade-in 0.5s ease-out forwards; }
+</style>
 </head>
-<body>
+<body class="min-h-screen font-body-md">
 
-<div class="topnav">
-  <button class="menu-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-  <div class="logo">Zarish<span>Note</span></div>
-  <div class="search-box">
-    <span class="icon">⌕</span>
-    <input type="text" id="docSearch" placeholder="Search docs..." oninput="filterDocs(this.value)">
+<!-- Sparkline -->
+<div class="sparkline fixed top-0 left-0 right-0 z-[60] opacity-30"></div>
+
+<!-- Top Nav -->
+<nav class="fixed top-0 w-full bg-surface/60 backdrop-blur-md flex justify-between items-center px-4 h-16 z-50 border-b border-white/5 shadow-sm">
+  <div class="flex items-center gap-3">
+    <button class="md:hidden p-2 hover:bg-white/5 transition-colors rounded-lg active:scale-95" onclick="toggleSidebar()">
+      <span class="material-symbols-outlined text-primary">menu</span>
+    </button>
+    <span class="font-headline-md text-headline-md-mobile font-bold text-primary">ZarishNote</span>
+    <span class="hidden sm:inline font-label-sm text-[10px] text-secondary/80 uppercase tracking-widest ml-2">Docs</span>
   </div>
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="docs.html" class="active">Docs</a>
-    <a href="https://github.com/zarishsphere/zs-note">GitHub</a>
+  <div class="flex items-center gap-1">
+    <a href="index.html" class="px-3 py-2 text-sm text-on-surface-variant hover:text-primary hover:bg-white/5 rounded-lg transition-all">Home</a>
+    <a href="docs.html" class="px-3 py-2 text-sm text-primary bg-primary/10 rounded-lg transition-all">Docs</a>
+    <a href="https://github.com/zarishsphere/zs-note" target="_blank" class="p-2 hover:bg-white/5 transition-colors rounded-lg active:scale-95">
+      <svg class="w-5 h-5 text-on-surface-variant hover:text-primary" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
   </div>
-</div>
+</nav>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<!-- Overlay -->
+<div class="fixed inset-0 bg-black/50 z-40 hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-section" data-section="concept">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Concept
+<!-- Sidebar -->
+<aside class="fixed top-16 left-0 h-[calc(100vh-64px)] w-[280px] bg-surface-container border-r border-white/5 z-50 overflow-y-auto transition-transform duration-300 -translate-x-full md:translate-x-0" id="sidebar">
+  <div class="p-4">
+    <div class="flex items-center gap-2 px-3 mb-6">
+      <span class="material-symbols-outlined text-primary">search</span>
+      <input type="text" id="docSearch" placeholder="Search docs..." oninput="filterDocs(this.value)" class="bg-transparent border-none text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none w-full font-body-md">
     </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/001-vision.md" class="sidebar-link"><span class="badge doc">doc</span> Vision</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/002-user-personas.md" class="sidebar-link"><span class="badge doc">doc</span> User Personas</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/003-value-proposition.md" class="sidebar-link"><span class="badge doc">doc</span> Value Proposition</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/004-glossary.md" class="sidebar-link"><span class="badge doc">doc</span> Glossary</a>
-    </div>
-  </div>
 
-  <div class="sidebar-section" data-section="specifications">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Specifications
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Concept</div>
+    <div class="space-y-0.5 mb-5">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/001-vision.md" class="sidebar-link"><span class="badge spec" style="background:rgba(78,222,163,0.15);color:#4edea3;">doc</span> Vision</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/002-user-personas.md" class="sidebar-link"><span class="badge spec" style="background:rgba(78,222,163,0.15);color:#4edea3;">doc</span> User Personas</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/003-value-proposition.md" class="sidebar-link"><span class="badge spec" style="background:rgba(78,222,163,0.15);color:#4edea3;">doc</span> Value Proposition</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/004-glossary.md" class="sidebar-link"><span class="badge spec" style="background:rgba(78,222,163,0.15);color:#4edea3;">doc</span> Glossary</a>
     </div>
-    <div class="sidebar-items">
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600;">Core Editor</div>
+
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Specifications</div>
+    <div class="space-y-0.5 mb-5">
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Core Editor</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/001-editor-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Editor Spec</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/002-file-manager-spec.md" class="sidebar-link"><span class="badge spec">spec</span> File Manager</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/003-znrc-schema.md" class="sidebar-link"><span class="badge spec">spec</span> .znrc Schema</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Sandbox Engine</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Sandbox Engine</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/002-sandbox-engine/001-sandbox-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Sandbox Spec</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">AI Engine</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">AI Engine</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/003-ai-engine/001-ai-chat-spec.md" class="sidebar-link"><span class="badge spec">spec</span> AI Chat</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/003-ai-engine/002-ai-providers.md" class="sidebar-link"><span class="badge spec">spec</span> AI Providers</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/003-ai-engine/003-ai-templates.md" class="sidebar-link"><span class="badge spec">spec</span> AI Templates</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Ingestion Engine</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Ingestion Engine</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/004-ingestion-engine/001-ingestion-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Ingestion Spec</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/004-ingestion-engine/002-format-matrix.md" class="sidebar-link"><span class="badge spec">spec</span> Format Matrix</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/004-ingestion-engine/003-web-converters.md" class="sidebar-link"><span class="badge spec">spec</span> Web Converters</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">MCP Engine</div>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/001-mcp-spec.md" class="sidebar-link"><span class="badge spec">spec</span> MCP Spec</a>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">MCP Engine</div>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/001-mcp-spec.md" class="sidebar-link" style="border-left-color:#4cd7f6;color:#4cd7f6;"><span class="badge spec" style="background:rgba(76,215,246,0.15);color:#4cd7f6;">mcp</span> MCP Spec</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/002-mcp-marketplace.md" class="sidebar-link"><span class="badge spec">spec</span> MCP Marketplace</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/005-mcp-engine/003-knowledge-bases.md" class="sidebar-link"><span class="badge spec">spec</span> Knowledge Bases</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Voice Engine</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Voice Engine</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/006-voice-engine/001-voice-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Voice Spec</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Publish &amp; Sync</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Publish &amp; Sync</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/007-publish-sync/001-publish-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Publish Spec</a>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/007-publish-sync/002-sync-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Sync Spec</a>
 
-      <div style="padding: 4px 16px 2px 28px; font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 4px;">Plugin System</div>
+      <div class="text-[10px] text-on-surface-variant/30 font-label-sm px-3 pt-2 pb-1">Plugin System</div>
       <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/008-plugin-system/001-plugin-spec.md" class="sidebar-link"><span class="badge spec">spec</span> Plugin Spec</a>
     </div>
-  </div>
 
-  <div class="sidebar-section" data-section="architecture">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Architecture
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Architecture</div>
+    <div class="space-y-0.5 mb-5">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="sidebar-link"><span class="badge spec" style="background:rgba(76,215,246,0.15);color:#4cd7f6;">arch</span> System Architecture</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/002-directory-structure.md" class="sidebar-link"><span class="badge spec" style="background:rgba(76,215,246,0.15);color:#4cd7f6;">arch</span> Directory Structure</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/003-tech-stack.md" class="sidebar-link"><span class="badge spec" style="background:rgba(76,215,246,0.15);color:#4cd7f6;">arch</span> Tech Stack</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/004-data-model.md" class="sidebar-link"><span class="badge spec" style="background:rgba(76,215,246,0.15);color:#4cd7f6;">arch</span> Data Model</a>
     </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="sidebar-link"><span class="badge arch-icon" style="display:inline;padding:0 4px;">📐</span> System Architecture</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/002-directory-structure.md" class="sidebar-link"><span class="badge arch-icon" style="display:inline;padding:0 4px;">📂</span> Directory Structure</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/003-tech-stack.md" class="sidebar-link"><span class="badge arch-icon" style="display:inline;padding:0 4px;">🔧</span> Tech Stack</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/004-data-model.md" class="sidebar-link"><span class="badge arch-icon" style="display:inline;padding:0 4px;">🗄</span> Data Model</a>
-    </div>
-  </div>
 
-  <div class="sidebar-section" data-section="security">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Security
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Security</div>
+    <div class="space-y-0.5 mb-5">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/001-threat-model.md" class="sidebar-link"><span class="badge spec" style="background:rgba(255,180,171,0.15);color:#ffb4ab;">sec</span> Threat Model</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/002-security-policy.md" class="sidebar-link"><span class="badge spec" style="background:rgba(255,180,171,0.15);color:#ffb4ab;">sec</span> Security Policy</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/003-sandbox-implementation.md" class="sidebar-link"><span class="badge spec" style="background:rgba(255,180,171,0.15);color:#ffb4ab;">sec</span> Sandbox Implementation</a>
     </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/001-threat-model.md" class="sidebar-link"><span class="badge sec-icon" style="display:inline;padding:0 4px;">🛡</span> Threat Model</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/002-security-policy.md" class="sidebar-link"><span class="badge sec-icon" style="display:inline;padding:0 4px;">🔒</span> Security Policy</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/004-security/003-sandbox-implementation.md" class="sidebar-link"><span class="badge sec-icon" style="display:inline;padding:0 4px;">⚙</span> Sandbox Impl</a>
-    </div>
-  </div>
 
-  <div class="sidebar-section" data-section="roadmap">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Roadmap
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Roadmap</div>
+    <div class="space-y-0.5 mb-5">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/001-phase-one.md" class="sidebar-link"><span class="badge spec" style="background:rgba(214,158,46,0.15);color:#d69e2e;">v1</span> Phase 1 (MVP)</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/002-phase-two.md" class="sidebar-link"><span class="badge spec" style="background:rgba(214,158,46,0.15);color:#d69e2e;">v2</span> Phase 2 (Full)</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/003-phase-three.md" class="sidebar-link"><span class="badge spec" style="background:rgba(214,158,46,0.15);color:#d69e2e;">v3</span> Phase 3 (Ecosystem)</a>
     </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/001-phase-one.md" class="sidebar-link"><span class="badge roadmap" style="display:inline;padding:0 4px;">1</span> Phase 1</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/002-phase-two.md" class="sidebar-link"><span class="badge roadmap" style="display:inline;padding:0 4px;">2</span> Phase 2</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/005-roadmap/003-phase-three.md" class="sidebar-link"><span class="badge roadmap" style="display:inline;padding:0 4px;">3</span> Phase 3</a>
-    </div>
-  </div>
 
-  <div class="sidebar-section" data-section="assets">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Assets &amp; Prototypes
-    </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/001-job-description-rust.md" class="sidebar-link"><span class="badge doc">doc</span> Rust JD</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/002-job-description-python.md" class="sidebar-link"><span class="badge doc">doc</span> Python JD</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/003-brand-guidelines.md" class="sidebar-link"><span class="badge doc">doc</span> Brand Guidelines</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/007-prototypes/001-zrc-examples/default.znrc" class="sidebar-link"><span class="badge spec">znrc</span> Default .znrc</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/007-prototypes/001-zrc-examples/advanced.znrc" class="sidebar-link"><span class="badge spec">znrc</span> Advanced .znrc</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/007-prototypes/002-sandbox-hello/README.md" class="sidebar-link"><span class="badge spec">wasm</span> Sandbox Hello</a>
-    </div>
-  </div>
-
-  <div class="sidebar-section" data-section="todo">
-    <div class="sidebar-section-header" onclick="toggleSection(this)">
-      <span class="arrow">▼</span> Project Management
-    </div>
-    <div class="sidebar-items">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="sidebar-link"><span class="badge doc">todo</span> Master TODO</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/AGENTS.md" class="sidebar-link"><span class="badge doc">guide</span> Agent Guide</a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/README.md" class="sidebar-link"><span class="badge doc">doc</span> Blueprint README</a>
+    <div class="text-[10px] text-on-surface-variant/50 font-label-sm uppercase tracking-widest px-3 mb-2">Assets &amp; Prototypes</div>
+    <div class="space-y-0.5">
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/001-job-description-rust.md" class="sidebar-link"><span class="badge spec" style="background:rgba(208,188,255,0.15);color:#d0bcff;">jd</span> Rust Developer JD</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/002-job-description-python.md" class="sidebar-link"><span class="badge spec" style="background:rgba(208,188,255,0.15);color:#d0bcff;">jd</span> Python Developer JD</a>
+      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/006-assets/003-brand-guidelines.md" class="sidebar-link"><span class="badge spec" style="background:rgba(208,188,255,0.15);color:#d0bcff;">brand</span> Brand Guidelines</a>
     </div>
   </div>
 </aside>
 
-<main class="main" id="mainContent">
-  <h1><span>Blueprint</span> Documentation</h1>
-  <p class="subtitle">Complete specifications, architecture, and roadmaps for the ZarishNote project.</p>
-  <div class="meta">
-    <span>📄 39 documents</span>
-    <span>📁 7 spec categories</span>
-    <span>🔄 Phase 1 in progress</span>
-    <span><a href="https://github.com/zarishsphere/zs-note">zarishsphere/zs-note</a></span>
-  </div>
+<!-- Main Content -->
+<div class="md:ml-[280px] pt-16 min-h-screen">
+  <main class="p-6 md:p-8 max-w-4xl mx-auto">
+    <h1 class="font-headline-lg text-headline-lg mb-2">Blueprint Documentation</h1>
+    <p class="text-on-surface-variant mb-8">39 documents across 7 categories — complete specifications for the ZarishNote project.</p>
 
-  <div class="overview-grid">
-    <div class="overview-card">
-      <div class="count">12</div>
-      <div class="label">Feature Specifications</div>
-      <div class="desc">Editor, Sandbox, AI, Ingestion, MCP, Voice, Publish, Plugin</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="glass-panel p-4 rounded-xl text-center card-rim">
+        <div class="text-primary font-headline-md text-headline-md mb-1">12</div>
+        <div class="text-on-surface-variant text-[11px] font-label-sm">Specifications</div>
+      </div>
+      <div class="glass-panel p-4 rounded-xl text-center card-rim">
+        <div class="text-secondary font-headline-md text-headline-md mb-1">4</div>
+        <div class="text-on-surface-variant text-[11px] font-label-sm">Architecture</div>
+      </div>
+      <div class="glass-panel p-4 rounded-xl text-center card-rim">
+        <div class="text-tertiary font-headline-md text-headline-md mb-1">3</div>
+        <div class="text-on-surface-variant text-[11px] font-label-sm">Security</div>
+      </div>
+      <div class="glass-panel p-4 rounded-xl text-center card-rim">
+        <div class="text-primary font-headline-md text-headline-md mb-1">39</div>
+        <div class="text-on-surface-variant text-[11px] font-label-sm">Total Docs</div>
+      </div>
     </div>
-    <div class="overview-card">
-      <div class="count">4</div>
-      <div class="label">Architecture Docs</div>
-      <div class="desc">System design, directory layout, tech stack, data model</div>
-    </div>
-    <div class="overview-card">
-      <div class="count">3</div>
-      <div class="label">Security Documents</div>
-      <div class="desc">Threat model, security policy, sandbox implementation</div>
-    </div>
-    <div class="overview-card">
-      <div class="count">3</div>
-      <div class="label">Roadmap Phases</div>
-      <div class="desc">Phase 1 (MVP), Phase 2 (Full), Phase 3 (Ecosystem)</div>
-    </div>
-  </div>
 
-  <div class="doc-section">
-    <h2>📋 Key Documents</h2>
-    <div class="doc-list">
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/README.md" class="doc-item">
-        <div class="icon spec-icon">📖</div>
-        <div class="info">
-          <div class="title">Blueprints Master Document</div>
-          <div class="desc">Vision, core principles, feature matrix, tech stack — the complete overview</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="doc-item">
-        <div class="icon roadmap-icon">✓</div>
-        <div class="info">
-          <div class="title">Master TODO</div>
-          <div class="desc">Complete build task tracker across all three phases — start here for work</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/001-vision.md" class="doc-item">
-        <div class="icon spec-icon">🎯</div>
-        <div class="info">
-          <div class="title">Vision Document</div>
-          <div class="desc">Why ZarishNote exists, what problem it solves, and where it's going</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="doc-item">
-        <div class="icon arch-icon">🏗</div>
-        <div class="info">
-          <div class="title">System Architecture</div>
-          <div class="desc">Tauri layers, IPC communication, data flow between components</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/002-sandbox-engine/001-sandbox-spec.md" class="doc-item">
-        <div class="icon spec-icon">◇</div>
-        <div class="info">
-          <div class="title">Sandbox Specification</div>
-          <div class="desc">Wasmtime isolation, capability model, network proxy, filesystem scoping</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-      <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/002-specifications/001-core-editor/003-znrc-schema.md" class="doc-item">
-        <div class="icon spec-icon">⚙</div>
-        <div class="info">
-          <div class="title">.znrc Schema</div>
-          <div class="desc">Workspace configuration — the "brain" of every ZarishNote project</div>
-        </div>
-        <span class="link-icon">→</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="doc-section">
-    <h2>📊 Build Progress</h2>
-    <div class="progress-bar">
-      <div class="progress-row">
-        <span class="progress-label">Core Editor</span>
-        <div class="progress-track"><div class="progress-fill green" style="width:100%"></div></div>
-        <span class="progress-pct">100%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">File Manager</span>
-        <div class="progress-track"><div class="progress-fill green" style="width:100%"></div></div>
-        <span class="progress-pct">100%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">Sandbox + AI</span>
-        <div class="progress-track"><div class="progress-fill green" style="width:95%"></div></div>
-        <span class="progress-pct">95%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">Ingestion</span>
-        <div class="progress-track"><div class="progress-fill yellow" style="width:80%"></div></div>
-        <span class="progress-pct">80%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">MCP Integration</span>
-        <div class="progress-track"><div class="progress-fill yellow" style="width:70%"></div></div>
-        <span class="progress-pct">70%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">Voice</span>
-        <div class="progress-track"><div class="progress-fill red" style="width:10%"></div></div>
-        <span class="progress-pct">10%</span>
-      </div>
-      <div class="progress-row">
-        <span class="progress-label">Publishing</span>
-        <div class="progress-track"><div class="progress-fill yellow" style="width:60%"></div></div>
-        <span class="progress-pct">60%</span>
+    <div class="glass-panel p-6 rounded-xl mb-8">
+      <h2 class="font-headline-md text-headline-md-mobile mb-4">Quick Links</h2>
+      <div class="grid md:grid-cols-2 gap-3">
+        <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/README.md" class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-variant transition-all">
+          <span class="material-symbols-outlined text-primary">menu_book</span>
+          <span class="text-sm">Master Blueprint Document</span>
+        </a>
+        <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/TODO.md" class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-variant transition-all">
+          <span class="material-symbols-outlined text-tertiary">checklist</span>
+          <span class="text-sm">Build Task Tracker</span>
+        </a>
+        <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/001-concept/001-vision.md" class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-variant transition-all">
+          <span class="material-symbols-outlined text-secondary">lightbulb</span>
+          <span class="text-sm">Vision Document</span>
+        </a>
+        <a href="https://github.com/zarishsphere/zs-note/blob/main/docs/003-architecture/001-system-architecture.md" class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest hover:bg-surface-variant transition-all">
+          <span class="material-symbols-outlined text-primary">architecture</span>
+          <span class="text-sm">System Architecture</span>
+        </a>
       </div>
     </div>
-  </div>
 
-  <div class="footer-bar">
-    <p>ZarishSphere Foundation · V1 · June 2026 · <a href="https://github.com/zarishsphere/zs-note">zarishsphere/zs-note</a></p>
-  </div>
-</main>
+    <div class="glass-panel p-6 rounded-xl">
+      <h2 class="font-headline-md text-headline-md-mobile mb-4">Build Progress</h2>
+      <div class="space-y-3">
+        <div><div class="flex justify-between text-xs mb-1"><span>Core Editor</span><span class="text-tertiary">100%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-tertiary rounded-full" style="width:100%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>File Manager</span><span class="text-tertiary">100%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-tertiary rounded-full" style="width:100%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>Sandbox + AI</span><span class="text-tertiary">95%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-tertiary rounded-full" style="width:95%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>Ingestion</span><span class="text-yellow-500">80%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-yellow-500 rounded-full" style="width:80%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>MCP Integration</span><span class="text-yellow-500">70%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-yellow-500 rounded-full" style="width:70%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>Voice</span><span class="text-red-500">10%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-red-500 rounded-full" style="width:10%"></div></div></div>
+        <div><div class="flex justify-between text-xs mb-1"><span>Publishing</span><span class="text-yellow-500">60%</span></div><div class="h-1.5 bg-surface-container-lowest rounded-full overflow-hidden"><div class="h-full bg-yellow-500 rounded-full" style="width:60%"></div></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-white/5 px-6 py-6 text-center">
+    <p class="text-xs text-on-surface-variant/60">ZarishSphere Foundation · V1 · June 2026 · <a href="https://github.com/zarishsphere/zs-note" class="text-primary hover:text-primary-container">zarishsphere/zs-note</a></p>
+  </footer>
+</div>
 
 <script>
-  // Collapsible sidebar sections
-  function toggleSection(header) {
-    const items = header.nextElementSibling;
-    const arrow = header.querySelector('.arrow');
-    const isCollapsed = items.style.display === 'none';
-    items.style.display = isCollapsed ? 'block' : 'none';
-    arrow.classList.toggle('collapsed', !isCollapsed);
-  }
-
-  // Mobile sidebar toggle
   function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('show');
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+    document.getElementById('sidebarOverlay').classList.toggle('hidden');
   }
 
-  // Search/filter docs
   function filterDocs(query) {
     const links = document.querySelectorAll('.sidebar-link');
-    const sections = document.querySelectorAll('.sidebar-section');
     const q = query.toLowerCase().trim();
-
     links.forEach(link => {
-      const text = link.textContent.toLowerCase();
-      link.style.display = (!q || text.includes(q)) ? 'block' : 'none';
+      link.style.display = (!q || link.textContent.toLowerCase().includes(q)) ? 'block' : 'none';
     });
-
-    sections.forEach(section => {
-      const sectionItems = section.querySelectorAll('.sidebar-link');
-      const visible = Array.from(sectionItems).some(el => el.style.display !== 'none');
-      section.style.display = (!q || visible) ? 'block' : 'none';
-    });
-
-    // Expand/collapse sections based on search
-    if (q) {
-      sections.forEach(section => {
-        const items = section.querySelector('.sidebar-items');
-        const arrow = section.querySelector('.arrow');
-        if (items) {
-          items.style.display = 'block';
-          if (arrow) arrow.classList.remove('collapsed');
-        }
-      });
-    }
   }
 
-  // Highlight active sidebar link based on current page
-  document.querySelectorAll('.sidebar-link').forEach(link => {
-    if (link.href === window.location.href) {
-      link.classList.add('active');
-    }
-  });
-
-  // Close sidebar on link click (mobile)
   document.querySelectorAll('.sidebar-link').forEach(link => {
     link.addEventListener('click', () => {
-      if (window.innerWidth <= 768) {
-        toggleSidebar();
-      }
+      if (window.innerWidth <= 768) toggleSidebar();
     });
   });
-</script>
 
+  // Fade-in animation
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('fade-in');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.glass-panel, .glass-card').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+</script>
 </body>
 </html>
