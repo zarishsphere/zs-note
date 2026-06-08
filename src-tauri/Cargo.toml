@@ -45,6 +45,8 @@ futures = "0.3"
 notify = "7"
 parking_lot = "0.12"
 tracing-appender = "0.2"
+base64 = "0.22"
+keyring = "3"
 
 [features]
 default = ["custom-protocol"]

@@ -5,6 +5,7 @@
   import AIPanel from './AIPanel.svelte';
   import StatusBar from './StatusBar.svelte';
   import Settings from './Settings.svelte';
+  import APIKeyManager from './APIKeyManager.svelte';
   import ContextInspector from './ContextInspector.svelte';
   import HistoryBrowser from './HistoryBrowser.svelte';
   import { getEditorStore } from '../stores/editor.svelte';
@@ -20,6 +21,7 @@
   let showSidebar = $state(true);
   let showAIPanel = $state(false);
   let showSettings = $state(false);
+  let showAPIKeys = $state(false);
   let showContextInspector = $state(false);
   let showHistory = $state(false);
   let sidebarWidth = $state(280);
@@ -179,6 +181,16 @@
       </button>
       <button
         class="btn btn-ghost btn-icon"
+        onclick={() => { showAPIKeys = !showAPIKeys; }}
+        title="API Keys"
+        aria-label="API Keys"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+        </svg>
+      </button>
+      <button
+        class="btn btn-ghost btn-icon"
         onclick={toggleSettings}
         title="Settings (⌘,)"
         aria-label="Settings"
@@ -241,6 +253,13 @@
       show={showHistory}
       filePath={editor.activeFilePath}
       onClose={() => { showHistory = false; }}
+    />
+  {/if}
+
+  {#if showAPIKeys}
+    <APIKeyManager
+      show={showAPIKeys}
+      onClose={() => { showAPIKeys = false; }}
     />
   {/if}
 </div>

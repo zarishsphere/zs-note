@@ -2,11 +2,13 @@
   import { getFilesStore } from '../stores/files.svelte';
   import { getEditorStore } from '../stores/editor.svelte';
   import FileTree from './FileTree.svelte';
+  import ImportDialog from './ImportDialog.svelte';
 
   const files = getFilesStore();
   const editor = getEditorStore();
 
   let searchInput = $state('');
+  let showImportDialog = $state(false);
 
   function handleSearchInput() {
     files.searchFiles(searchInput);
@@ -17,6 +19,15 @@
     if (name) {
       files.createFile(name);
     }
+  }
+
+  function handleImport() {
+    showImportDialog = true;
+  }
+
+  function handleImported(_paths: string[]) {
+    showImportDialog = false;
+    files.loadFileTree();
   }
 
   const sections = $state([
@@ -54,6 +65,14 @@
         <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
       New Note
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick={handleImport}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+      Import
     </button>
   </div>
 
@@ -164,7 +183,11 @@
     </div>
 
   </div>
-</aside>
+<ImportDialog
+  show={showImportDialog}
+  onClose={() => { showImportDialog = false; }}
+  onImported={handleImported}
+/>
 
 <style>
   .sidebar {

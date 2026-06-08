@@ -1,4 +1,3 @@
-import type { Ctx } from '@milkdown/ctx';
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
@@ -7,17 +6,21 @@ import { tooltipFactory } from '@milkdown/plugin-tooltip';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { clipboard } from '@milkdown/plugin-clipboard';
 import { cursor } from '@milkdown/plugin-cursor';
+import { math } from '@milkdown/plugin-math';
+import { mermaidPlugin } from './mermaid-plugin';
+import { tableTooltipPlugin } from './table-plugin';
 
 export interface MilkdownSetupOptions {
   content: string;
   readOnly?: boolean;
   onChange?: (content: string) => void;
   onSave?: () => void;
+  onFormat?: (action: string) => void;
   root: HTMLElement;
 }
 
 export function createMilkdownEditor(options: MilkdownSetupOptions) {
-  const { content, readOnly, onChange, onSave, root } = options;
+  const { content, readOnly, onChange, onSave, onFormat, root } = options;
 
   const tooltip = tooltipFactory('format');
 
@@ -33,6 +36,9 @@ export function createMilkdownEditor(options: MilkdownSetupOptions) {
     .use(clipboard)
     .use(cursor)
     .use(listener)
+    .use(math)
+    .use(mermaidPlugin)
+    .use(tableTooltipPlugin)
     .config((ctx) => {
       const l = ctx.get(listenerCtx);
 

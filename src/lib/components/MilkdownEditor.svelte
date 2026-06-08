@@ -34,6 +34,7 @@
         }, 500);
       },
       onSave,
+      onFormat: handleFormat,
     });
 
     editorInstance.editor.create().catch(console.error);
@@ -58,9 +59,11 @@
     window.dispatchEvent(new CustomEvent('editor:format', { detail: { action } }));
   }
 
-  function handlePaste(e: ClipboardEvent) {
+  async function handlePaste(e: ClipboardEvent) {
     const items = e.clipboardData?.items;
     if (!items) return;
+
+    const { handleImagePaste } = await import('../milkdown/image-handler');
 
     for (const item of Array.from(items)) {
       if (item.type.startsWith('image/')) {
@@ -69,13 +72,35 @@
         if (!file) continue;
 
         const reader = new FileReader();
-        reader.onload = (ev) => {
+        reader.onload = async (ev) => {
           const dataUrl = ev.target?.result as string;
-          const event = new CustomEvent('editor:image-paste', { detail: { dataUrl, fileName: file.name } });
-          window.dispatchEvent(event);
+          const md = await handleImagePaste(dataUrl, file.name);
+          if (md && editorInstance) {
+            const content = await editorInstance.getContent();
+            onChange(content + '\n' + md + '\n');
+          }
         };
         reader.readAsDataURL(file);
       }
+    }
+  }
+
+  async function handleDrop(e: DragEvent) {
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    let hasImage = false;
+    for (const f of Array.from(files)) {
+      if (f.type.startsWith('image/')) { hasImage = true; break; }
+    }
+    if (!hasImage) return;
+    e.preventDefault();
+
+    const { handleImageDrop } = await import('../milkdown/image-handler');
+    const markdowns = await handleImageDrop(files);
+    if (markdowns.length > 0 && editorInstance) {
+      const content = await editorInstance.getContent();
+      onChange(content + '\n' + markdowns.join('\n') + '\n');
     }
   }
 </script>
@@ -87,6 +112,8 @@
     class:readonly={readOnly}
     bind:this={containerEl}
     onpaste={handlePaste}
+    ondrop={handleDrop}
+    ondragover={(e) => e.preventDefault()}
     role="textbox"
     aria-label="WYSIWYG editor"
     aria-multiline="true"

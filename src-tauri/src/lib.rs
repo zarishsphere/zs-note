@@ -71,6 +71,12 @@ pub fn run() {
             commands::mcp::mcp_remove_server,
             commands::mcp::mcp_test_connection,
             commands::mcp::mcp_call_tool,
+            commands::import::import_image,
+            commands::import::import_files,
+            commands::credentials::store_api_key,
+            commands::credentials::get_api_key,
+            commands::credentials::delete_api_key,
+            commands::credentials::list_api_keys,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ZarishNote");

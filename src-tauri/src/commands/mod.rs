@@ -1,7 +1,9 @@
 pub mod ai;
 pub mod config;
+pub mod credentials;
 pub mod editor;
 pub mod git;
+pub mod import;
 pub mod ingest;
 pub mod mcp;
 pub mod sandbox;
