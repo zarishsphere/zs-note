@@ -1,6 +1,6 @@
 # ZarishNote — Agent Guide
 
-This directory (`docs/`) contains the **specification/blueprint** for the ZarishNote project.  
+The directory (`docs/`) contains the **specification/blueprint** for the ZarishNote project.  
 The actual code repository: <https://github.com/zarishsphere/zs-note>
 
 ## Structure
@@ -31,7 +31,7 @@ This documentation directory has no `package.json`, no build scripts, no tests, 
 
 ## Master TODO
 
-`docs/TODO.md` is the single source of truth for all build tasks across all three phases. It includes guidelines for new users and developers, infrastructure prerequisites, and per-sprint task checklists. Start there if you need to understand what still needs to be done.
+`/TODO.md` is the single source of truth for all build tasks across all three phases. It includes guidelines for new users and developers, infrastructure prerequisites, and per-sprint task checklists. Start there if you need to understand what still needs to be done.
 
 ## URL conventions when writing specs
 
