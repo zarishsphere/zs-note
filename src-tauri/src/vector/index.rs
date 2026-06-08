@@ -87,18 +87,35 @@ pub fn chunk_semantic(text: &str, max_chunk_size: usize) -> Vec<String> {
 
     while start < text.len() {
         let end = (start + max_chunk_size).min(text.len());
+        let search_section = &text[start..end];
+        let mut best_boundary = None;
 
-        if end < text.len() {
-            let search_section = &text[start..end];
-            let mut best_boundary = None;
+        for boundary in &boundaries {
+            if let Some(pos) = search_section.rfind(boundary) {
+                let absolute_pos = start + pos + boundary.len();
+                if absolute_pos > start && absolute_pos < text.len() {
+                    best_boundary = Some(absolute_pos);
+                    break;
+                }
+            }
+        }
 
-            for boundary in &boundaries {
-                if let Some(pos) = search_section.rfind(boundary) {
-                    let absolute_pos = start + pos + boundary.len();
-                    if absolute_pos > start {
-                        best_boundary = Some(absolute_pos);
-                        break;
-                    }
+        if let Some(boundary_pos) = best_boundary {
+            chunks.push(text[start..boundary_pos].to_string());
+            start = boundary_pos;
+            continue;
+        }
+
+        chunks.push(text[start..end].to_string());
+        start = end;
+    }
+
+    if chunks.is_empty() && !text.is_empty() {
+        chunks.push(text.to_string());
+    }
+
+    chunks
+}
                 }
             }
 
