@@ -11,10 +11,12 @@ ZarishNote is a desktop note-taking application that combines a rich Markdown ed
 
 ## Repository Structure
 
-| Repo | Purpose | URL |
-|---|---|---|
-| **zs-note** (this repo) | Source code — Tauri v2 + Svelte 5 + Rust backend | <https://github.com/zarishsphere/zs-note> |
-| **zarishnote-blueprint** | Specifications, architecture docs, roadmaps | <https://github.com/zarishsphere/zarishnote-blueprint> |
+| Directory | Purpose |
+|---|---|
+| `src/` | Svelte 5 frontend |
+| `src-tauri/` | Rust backend (Tauri v2) |
+| `ingestion/` | Python document ingestion engine |
+| `docs/` | Blueprint specifications, roadmaps, architecture docs |
 
 ---
 
@@ -51,7 +53,7 @@ pnpm tauri dev
 
 > **Status:** CI pipeline is fully green — `cargo fmt`, `cargo clippy`, `cargo test`, `pnpm typecheck`, and `ruff` all pass. The project compiles and tests pass on all three platforms (ubuntu-latest, macos-latest, windows-latest).
 >
-> **Note:** The project is in early development. Not all features are functional yet. See the [blueprint repo](https://github.com/zarishsphere/zarishnote-blueprint) for the overall roadmap.
+> **Note:** The project is in early development. Not all features are functional yet. See the [blueprint docs](docs/README.md) for the overall roadmap.
 
 ---
 
@@ -121,7 +123,7 @@ All CI checks pass on `main`:
 
 ## Features (Planned / In Progress)
 
-See the [blueprint TODO](https://github.com/zarishsphere/zarishnote-blueprint/blob/main/TODO.md) for a complete status breakdown.
+See the [blueprint TODO](docs/TODO.md) for a complete status breakdown.
 
 | Feature | Status |
 |---|---|
@@ -153,8 +155,8 @@ All AI tools, MCP servers, and plugins execute inside a Wasmtime sandbox with co
 
 ## Contributing
 
-1. Read the [blueprint specifications](https://github.com/zarishsphere/zarishnote-blueprint) to understand the design.
-2. Check the [TODO](https://github.com/zarishsphere/zarishnote-blueprint/blob/main/TODO.md) for open tasks.
+1. Read the [blueprint specifications](docs/README.md) to understand the design.
+2. Check the [TODO](docs/TODO.md) for open tasks.
 3. File issues at [github.com/zarishsphere/zs-note/issues](https://github.com/zarishsphere/zs-note/issues).
 
 ---
