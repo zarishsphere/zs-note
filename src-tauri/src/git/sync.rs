@@ -2,8 +2,8 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Context, Result, bail};
-use git2::{Cred, FetchOptions, PushOptions, RemoteCallbacks, Repository};
+use anyhow::{Result, bail};
+use git2::{Cred, FetchOptions, PushOptions, RemoteCallbacks};
 use tokio::sync::Mutex;
 use tracing::info;
 
@@ -65,7 +65,7 @@ impl RemoteSyncManager {
                     progress.received_objects(),
                     progress.total_objects(),
                     progress.received_bytes(),
-                    progress.total_dobjects()
+                    progress.total_objects()
                 );
             }
             true
@@ -110,7 +110,7 @@ impl RemoteSyncManager {
         let analysis = repo.merge_analysis(&[&fetch_commit])?;
 
         if analysis.0.is_up_to_date() {
-            info("Already up to date");
+            info!("Already up to date");
             return Ok(());
         }
 
@@ -120,14 +120,14 @@ impl RemoteSyncManager {
             reference.set_target(fetch_commit.id(), "Fast-forward merge")?;
             repo.set_head(refname)?;
             repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
-            info("Fast-forwarded to remote");
+            info!("Fast-forwarded to remote");
         } else if analysis.0.is_normal() {
             let refname = "refs/heads/main";
             let mut reference = repo.find_reference(refname)?;
             reference.set_target(fetch_commit.id(), "Merge")?;
             repo.set_head(refname)?;
             repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
-            info("Merged with remote");
+            info!("Merged with remote");
         } else {
             bail!("Merge conflict detected — manual resolution required");
         }
@@ -175,8 +175,7 @@ impl RemoteSyncManager {
         let repo = engine.repo()?;
 
         if repo.find_remote("origin").is_ok() {
-            let mut remote = repo.find_remote("origin")?;
-            remote.set_url(url)?;
+            repo.remote_set_url("origin", url)?;
         } else {
             repo.remote("origin", url)?;
         }

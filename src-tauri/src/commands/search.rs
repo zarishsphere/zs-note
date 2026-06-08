@@ -1,6 +1,3 @@
-use std::path::Path;
-
-use anyhow::{Context, Result};
 use tauri::State;
 use walkdir::WalkDir;
 

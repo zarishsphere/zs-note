@@ -1,4 +1,3 @@
-use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 

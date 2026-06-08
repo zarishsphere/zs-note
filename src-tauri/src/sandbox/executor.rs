@@ -1,9 +1,8 @@
-use std::io::Read;
-use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result};
-use wasmtime::{Engine, Func, Linker, Module, Store};
+use wasmtime::component::Table;
+use wasmtime::{Engine, Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
 use crate::sandbox::SandboxError;
@@ -11,12 +10,17 @@ use crate::types::ToolConfig;
 
 struct SandboxWasi {
     ctx: WasiCtx,
+    table: Table,
     output: Vec<u8>,
 }
 
 impl WasiView for SandboxWasi {
     fn ctx(&mut self) -> &mut WasiCtx {
         &mut self.ctx
+    }
+
+    fn table(&mut self) -> &mut Table {
+        &mut self.table
     }
 }
 
@@ -38,6 +42,7 @@ pub fn execute_wasm(
             .inherit_stdin()
             .args(&["wasm-module", func_name, args])
             .build(),
+        table: Table::default(),
         output: Vec::new(),
     };
 

@@ -119,7 +119,7 @@ pub fn resolve_virtual_path(requested: &Path, vault_root: &Path) -> Result<PathB
     Ok(canonical)
 }
 
-fn glob_match(pattern: &str, host: &str) -> bool {
+pub fn glob_match(pattern: &str, host: &str) -> bool {
     if pattern == "*" || pattern == "*.*" {
         return true;
     }

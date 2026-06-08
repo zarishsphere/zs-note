@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 use tracing::info;
 
 use crate::mcp::transport::{McpTransport, TransportType};

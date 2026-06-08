@@ -1,9 +1,4 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use anyhow::{Context, Result};
 use tauri::State;
-use tokio::sync::RwLock;
 
 use crate::AppState;
 use crate::mcp::MCPClient;
@@ -121,7 +116,7 @@ pub async fn mcp_call_tool(
 ) -> Result<serde_json::Value, String> {
     let client = MCPClient::new(&server);
     client
-        .call_tool(&tool, args)
+        .call_tool(&server, &tool, args)
         .await
         .map_err(|e| format!("Tool call failed: {}", e))
 }

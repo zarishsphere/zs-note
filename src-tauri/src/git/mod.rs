@@ -9,7 +9,7 @@ use chrono::{TimeZone, Utc};
 use git2::{DiffOptions, Oid, Repository, Signature, StatusOptions};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{CommitEntry, DiffLine, GitStatus};
+use crate::types::{CommitEntry, GitStatus};
 
 pub struct GitEngine {
     repo_path: PathBuf,

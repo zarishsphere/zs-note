@@ -1,17 +1,14 @@
 use std::collections::HashMap;
 
-use anyhow::{Context, Result};
 use futures::StreamExt;
-use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
-use tokio::sync::mpsc;
 
 use crate::AppState;
 use crate::ai::claude::ClaudeProvider;
 use crate::ai::gemini::GeminiProvider;
 use crate::ai::ollama::OllamaProvider;
 use crate::ai::openai::OpenAIProvider;
-use crate::ai::{AIProvider, ChatCompletionRequest};
+use crate::ai::AIProvider;
 use crate::types::*;
 
 fn get_provider(

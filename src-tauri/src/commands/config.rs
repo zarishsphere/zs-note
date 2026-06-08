@@ -1,4 +1,3 @@
-use anyhow::{Context, Result};
 use tauri::State;
 
 use crate::config::Config;

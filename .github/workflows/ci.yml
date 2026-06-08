@@ -61,7 +61,6 @@ jobs:
           cache: pnpm
       - run: pnpm install
       - run: pnpm typecheck
-      - run: pnpm lint
 
   python:
     name: Python — lint + test

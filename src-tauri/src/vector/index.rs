@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use tracing::info;
 
 use crate::vector::VectorStore;

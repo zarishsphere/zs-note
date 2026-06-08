@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::types::SearchResult;

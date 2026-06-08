@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::Utc;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};

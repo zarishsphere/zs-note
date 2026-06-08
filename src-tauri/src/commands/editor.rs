@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use tauri::State;
 use walkdir::WalkDir;
 
-use crate::config::Config;
 use crate::types::{AppState, FileEntry};
 
 #[tauri::command]

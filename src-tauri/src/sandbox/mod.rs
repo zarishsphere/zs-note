@@ -2,10 +2,7 @@ pub mod capability;
 pub mod executor;
 pub mod network;
 
-use std::path::Path;
 use std::time::Instant;
-
-use anyhow::{Context, Result};
 use thiserror::Error;
 use wasmtime::{Engine, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;

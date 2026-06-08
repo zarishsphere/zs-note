@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use futures::Stream;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{ChatCompletionRequest, ChatCompletionResponse, StreamEvent};
+pub use crate::types::{ChatCompletionRequest, ChatCompletionResponse, StreamEvent};
 
 #[async_trait]
 pub trait AIProvider: Send + Sync {

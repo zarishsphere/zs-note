@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use chrono::{TimeZone, Utc};
-use git2::{DiffOptions, Oid, Sort};
+use git2::{DiffOptions, Sort};
 
 use crate::git::GitEngine;
 use crate::types::CommitEntry;
