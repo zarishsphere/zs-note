@@ -4,11 +4,11 @@ use futures::StreamExt;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::AppState;
+use crate::ai::AIProvider;
 use crate::ai::claude::ClaudeProvider;
 use crate::ai::gemini::GeminiProvider;
 use crate::ai::ollama::OllamaProvider;
 use crate::ai::openai::OpenAIProvider;
-use crate::ai::AIProvider;
 use crate::types::*;
 
 fn get_provider(
