@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ZarishNote - AI Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .sparkline-animate {
+            background: linear-gradient(90deg, transparent, #4cd7f6, transparent);
+            background-size: 200% 100%;
+            animation: spark-flow 2s linear infinite;
+        }
+        @keyframes spark-flow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        body {
+            background-color: #020617;
+            color: #dae2fd;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#4edea3",
+                      "surface": "#0b1326",
+                      "on-error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#5516be",
+                      "secondary": "#4cd7f6",
+                      "primary-container": "#a078ff",
+                      "tertiary-container": "#00a572",
+                      "primary-fixed-dim": "#d0bcff",
+                      "on-secondary-container": "#00424e",
+                      "surface-variant": "#2d3449",
+                      "secondary-container": "#03b5d3",
+                      "inverse-on-surface": "#283044",
+                      "on-tertiary-fixed": "#002113",
+                      "background": "#0b1326",
+                      "primary": "#d0bcff",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "on-surface-variant": "#cbc3d7",
+                      "surface-container-highest": "#2d3449",
+                      "on-surface": "#dae2fd",
+                      "surface-dim": "#0b1326",
+                      "on-primary-container": "#340080",
+                      "on-primary-fixed": "#23005c",
+                      "surface-container-lowest": "#060e20",
+                      "outline": "#958ea0",
+                      "surface-tint": "#d0bcff",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "inverse-surface": "#dae2fd",
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#001f26",
+                      "outline-variant": "#494454",
+                      "surface-container-low": "#131b2e",
+                      "surface-container-high": "#222a3d",
+                      "on-tertiary-container": "#00311f",
+                      "primary-fixed": "#e9ddff",
+                      "on-background": "#dae2fd",
+                      "on-error": "#690005",
+                      "on-secondary": "#003640",
+                      "error-container": "#93000a",
+                      "surface-container": "#171f33",
+                      "surface-bright": "#31394d",
+                      "tertiary-fixed": "#6ffbbe",
+                      "on-primary": "#3c0091",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "inverse-primary": "#6d3bd7",
+                      "secondary-fixed": "#acedff",
+                      "on-tertiary": "#003824",
+                      "on-secondary-fixed-variant": "#004e5c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter-md": "24px",
+                      "margin-page": "32px",
+                      "unit": "4px",
+                      "container-max": "800px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["JetBrains Mono"],
+                      "headline-lg-mobile": ["Inter"],
+                      "code-md": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["26px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "code-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex flex-col font-body-md text-on-surface overflow-hidden">
+<!-- Top Navigation Anchor -->
+<header class="bg-surface/60 backdrop-blur-md dark:bg-surface/60 border-b border-white/5 fixed top-0 w-full z-50 flex justify-between items-center px-4 h-16 w-full shadow-sm">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 duration-200">menu</span>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md-mobile font-bold text-primary">ZarishNote</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest text-secondary/80">Sandboxed Mode</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden md:flex bg-surface-variant/30 rounded-full px-3 py-1 items-center gap-2 border border-white/5">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div>
+<span class="font-label-sm text-on-surface-variant">Local Node Active</span>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 duration-200">sync</span>
+</div>
+</header>
+<!-- Processing Sparkline (Visible during AI activity) -->
+<div class="fixed top-16 left-0 w-full h-[2px] sparkline-animate z-[51]"></div>
+<!-- Main Chat Canvas -->
+<main class="flex-1 mt-16 mb-20 overflow-y-auto w-full max-w-[800px] mx-auto px-4 py-8 space-y-8 scroll-smooth">
+<!-- Welcome/State Message -->
+<div class="flex flex-col items-center justify-center text-center py-12 opacity-40">
+<span class="material-symbols-outlined text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">shield</span>
+<p class="font-label-sm">End-to-end encrypted session. No data leaves this device.</p>
+</div>
+<!-- Chat History -->
+<div class="space-y-8">
+<!-- User Prompt -->
+<div class="flex flex-col items-end gap-2 animate-in fade-in slide-in-from-right-4 duration-500">
+<div class="bg-surface-container-high border border-white/10 rounded-xl rounded-tr-none px-4 py-3 max-w-[85%]">
+<p class="font-body-md text-on-surface">Can you summarize the project specs for the 'Quantum-01' folder? Focus on the architectural requirements and security protocols.</p>
+</div>
+<span class="font-label-sm text-on-surface-variant">14:02 · Read</span>
+</div>
+<!-- AI Response -->
+<div class="flex flex-col items-start gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/20 border border-secondary flex items-center justify-center ai-glow">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<span class="font-label-sm text-secondary font-bold uppercase tracking-tighter">Assistant Core</span>
+</div>
+<div class="glass-panel border-l-2 border-secondary rounded-xl rounded-tl-none px-5 py-4 max-w-[90%] space-y-4">
+<p class="font-body-md leading-relaxed">I've analyzed the 4 documents within <code class="bg-white/5 px-1 rounded text-secondary">Quantum-01</code>. Here is the architectural summary:</p>
+<div class="space-y-3">
+<div class="flex gap-3 items-start">
+<span class="text-secondary font-bold">•</span>
+<p class="text-on-surface-variant text-sm"><span class="text-on-surface font-semibold">Decentralized Mesh:</span> The system utilizes a peer-to-peer relay network to bypass centralized gateway latency.</p>
+</div>
+<div class="flex gap-3 items-start">
+<span class="text-secondary font-bold">•</span>
+<p class="text-on-surface-variant text-sm"><span class="text-on-surface font-semibold">Zero-Knowledge Proofs:</span> All authentication modules must implement ZK-SNARKs for user identity verification without data disclosure.</p>
+</div>
+<div class="flex gap-3 items-start">
+<span class="text-secondary font-bold">•</span>
+<p class="text-on-surface-variant text-sm"><span class="text-on-surface font-semibold">Hardware Isolation:</span> Key material is stored exclusively in TEE (Trusted Execution Environments) per section 4.2.</p>
+</div>
+</div>
+<div class="pt-2 border-t border-white/5 flex gap-2">
+<button class="font-label-sm text-[10px] px-2 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors border border-white/10">COPY SUMMARY</button>
+<button class="font-label-sm text-[10px] px-2 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors border border-white/10">CREATE TASK LIST</button>
+</div>
+</div>
+</div>
+<!-- Newest Interaction Placeholder -->
+<div class="hidden flex items-center gap-2 px-4" id="ai-typing">
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce"></div>
+<div class="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce [animation-delay:0.2s]"></div>
+<div class="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce [animation-delay:0.4s]"></div>
+</div>
+<span class="font-label-sm text-on-surface-variant italic">Synthesizing...</span>
+</div>
+</div>
+</main>
+<!-- Bottom Input Area (Fixed) -->
+<div class="fixed bottom-0 left-0 w-full glass-panel border-t border-white/5 pt-4 pb-8 px-4 z-50">
+<div class="max-w-[800px] mx-auto relative">
+<div class="flex items-end gap-3 bg-surface-container-low border border-white/10 rounded-2xl p-2 transition-all focus-within:border-primary-container/50 focus-within:shadow-[0_0_20px_rgba(160,120,255,0.1)]">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface font-body-md py-2 resize-none max-h-32" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" placeholder="Ask about your documents..." rows="1"></textarea>
+<button class="bg-primary-container text-on-primary-container p-3 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<!-- Quick Suggestions -->
+<div class="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-2">
+<button class="whitespace-nowrap font-label-sm text-[10px] px-3 py-1.5 bg-surface-variant/30 rounded-full border border-white/5 hover:border-primary transition-colors">SUMMARIZE RECENT</button>
+<button class="whitespace-nowrap font-label-sm text-[10px] px-3 py-1.5 bg-surface-variant/30 rounded-full border border-white/5 hover:border-primary transition-colors">CHECK SECURITY</button>
+<button class="whitespace-nowrap font-label-sm text-[10px] px-3 py-1.5 bg-surface-variant/30 rounded-full border border-white/5 hover:border-primary transition-colors">DRAFT EMAIL</button>
+<button class="whitespace-nowrap font-label-sm text-[10px] px-3 py-1.5 bg-surface-variant/30 rounded-full border border-white/5 hover:border-primary transition-colors">QUERY DATABASE</button>
+</div>
+</div>
+</div>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface/60 backdrop-blur-md dark:bg-surface/60 border-t border-white/5 z-[60]">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="font-label-sm text-label-sm">Files</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">edit_note</span>
+<span class="font-label-sm text-label-sm">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary bg-primary-container/20 rounded-xl px-3 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-sm text-label-sm">AI Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</div>
+</nav>
+<!-- Sidebar for Desktop -->
+<aside class="hidden md:flex fixed left-0 top-0 h-full w-[240px] bg-surface-container border-r border-white/5 flex-col py-6 px-4 z-[55] space-y-8">
+<div class="flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container/10 border border-primary/20">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A macro close-up of a sophisticated humanoid robot's eye lens, reflecting a matrix of digital data and violet light. The aesthetic is extremely high-tech, sleek, and minimalist, using a color palette of deep obsidian and neon cyan accents. Professional photography style, clean lines, and a sense of cold engineering precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZOr-39sDr3i5_GkkKbHV-fl-9InVTF0XvZ9gtgRVG_ZcjbueHRQqzTb4Fr8CN11SthvUH6XtpMlKKd4rvC3W4-trT90Ofrjxtgcu8arlh-ib-wFHjVoaOrlT_3Ei6Y-_cbJWA-v2khkJTIlMu0_RUzrQA0a8Br1ROe7CnGYBItM4RZDrABs3TQ-E4RMFAyBn27uvkXz5p7eJxTj-ZMDjCM79XoQRVWVZt5AFXvUe838HPzWR95BSqnW4lkz883KkTKS_bLUt_olA"/>
+</div>
+<div>
+<p class="font-headline-md text-sm font-bold text-primary">Zarish Editor</p>
+<p class="font-label-sm text-[10px] text-tertiary">PRO PLAN ACTIVE</p>
+</div>
+</div>
+<nav class="space-y-1">
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="font-body-md text-sm">Personal</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all cursor-pointer">
+<span class="material-symbols-outlined">work</span>
+<span class="font-body-md text-sm">Work</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-primary font-bold bg-surface-variant/50 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-body-md text-sm">AI Research</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all cursor-pointer">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-body-md text-sm">Archive</span>
+</div>
+</nav>
+<div class="mt-auto px-3 py-4 bg-surface-container-highest/30 rounded-xl border border-white/5 space-y-3">
+<p class="font-label-sm text-[10px] uppercase text-on-surface-variant opacity-50">Local Memory</p>
+<div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+<div class="flex justify-between font-label-sm text-[10px]">
+<span>1.2 GB</span>
+<span>2.0 GB</span>
+</div>
+</div>
+</aside>
+<script>
+        // Micro-interaction: Simulate AI processing
+        const textarea = document.querySelector('textarea');
+        const sendBtn = document.querySelector('.bg-primary-container');
+        const aiTyping = document.getElementById('ai-typing');
+        const sparkline = document.querySelector('.sparkline-animate');
+
+        sendBtn.addEventListener('click', () => {
+            if (textarea.value.trim() !== "") {
+                textarea.value = "";
+                aiTyping.classList.remove('hidden');
+                sparkline.style.opacity = "1";
+                
+                setTimeout(() => {
+                    aiTyping.classList.add('hidden');
+                    sparkline.style.opacity = "0";
+                }, 3000);
+            }
+        });
+
+        // Hide sparkline by default
+        sparkline.style.opacity = "0.3";
+    </script>
+</body></html>

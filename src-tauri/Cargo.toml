@@ -26,12 +26,13 @@ tauri-plugin-clipboard-manager = "2.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
+toml = "0.8"
 tokio = { version = "1", features = ["full"] }
 anyhow = "1"
 thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream", "multipart"] }
 url = "2"
 wasmtime = "45"
 wasmtime-wasi = "45"
@@ -48,9 +49,32 @@ tracing-appender = "0.2"
 base64 = "0.22"
 keyring = "3"
 
+quick-xml = "0.39"
+regex-lite = "0.1"
+
+[dev-dependencies]
+tempfile = "3"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+voice = ["dep:cpal", "dep:hound", "dep:rodio"]
+
+[dependencies.cpal]
+version = "0.15"
+optional = true
+
+[dependencies.hound]
+version = "3"
+optional = true
+
+[dependencies.whisper-rs]
+version = "0.13"
+optional = true
+
+[dependencies.rodio]
+version = "0.20"
+optional = true
 
 [profile.release]
 strip = true

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ZarishNote - Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#4edea3",
+                        "surface": "#0b1326",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#5516be",
+                        "secondary": "#4cd7f6",
+                        "primary-container": "#a078ff",
+                        "tertiary-container": "#00a572",
+                        "primary-fixed-dim": "#d0bcff",
+                        "on-secondary-container": "#00424e",
+                        "surface-variant": "#2d3449",
+                        "secondary-container": "#03b5d3",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed": "#002113",
+                        "background": "#0b1326",
+                        "primary": "#d0bcff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-surface-variant": "#cbc3d7",
+                        "surface-container-highest": "#2d3449",
+                        "on-surface": "#dae2fd",
+                        "surface-dim": "#0b1326",
+                        "on-primary-container": "#340080",
+                        "on-primary-fixed": "#23005c",
+                        "surface-container-lowest": "#060e20",
+                        "outline": "#958ea0",
+                        "surface-tint": "#d0bcff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "inverse-surface": "#dae2fd",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#001f26",
+                        "outline-variant": "#494454",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-high": "#222a3d",
+                        "on-tertiary-container": "#00311f",
+                        "primary-fixed": "#e9ddff",
+                        "on-background": "#dae2fd",
+                        "on-error": "#690005",
+                        "on-secondary": "#003640",
+                        "error-container": "#93000a",
+                        "surface-container": "#171f33",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-primary": "#3c0091",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "inverse-primary": "#6d3bd7",
+                        "secondary-fixed": "#acedff",
+                        "on-tertiary": "#003824",
+                        "on-secondary-fixed-variant": "#004e5c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter-md": "24px",
+                        "margin-page": "32px",
+                        "unit": "4px",
+                        "container-max": "800px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Inter"],
+                        "code-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["26px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "code-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(23, 31, 51, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(208, 188, 255, 0.15);
+        }
+        .active-line-indicator {
+            width: 2px;
+            background: #d0bcff;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(208, 188, 255, 0.2);
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary/30 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-md border-b border-white/5 shadow-sm flex justify-between items-center px-4 h-16">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-white/5 transition-colors active:scale-95 duration-200 rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile font-bold text-primary">Vault</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-white/5 transition-colors active:scale-95 duration-200 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+</button>
+<button class="p-2 hover:bg-white/5 transition-colors active:scale-95 duration-200 rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="sync">sync</span>
+</button>
+</div>
+</header>
+<div class="flex pt-16 pb-20">
+<!-- NavigationDrawer (Desktop) -->
+<aside class="hidden md:flex flex-col h-[calc(100vh-64px)] w-[280px] py-6 border-r border-white/5 bg-surface-container fixed left-0">
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div>
+<p class="text-primary font-bold font-headline-md text-[18px]">Zarish Editor</p>
+<p class="text-on-surface-variant text-[12px]">Pro Plan Active</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-primary font-bold bg-surface-variant/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="folder">folder</span>
+<span class="font-body-md">Vault</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span class="font-body-md">Work</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md">Shared</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+<span class="font-body-md">Archive</span>
+</a>
+</nav>
+<div class="px-8 py-4">
+<p class="text-on-surface-variant/40 font-label-sm uppercase tracking-widest text-[10px]">v1.0.4</p>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[280px] px-4 md:px-margin-page py-6 max-w-container-max mx-auto">
+<!-- Bento Stats Header -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+<div class="glass-panel p-4 rounded-xl flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-primary/60" data-icon="description">description</span>
+<div>
+<p class="text-on-surface font-headline-md">128</p>
+<p class="text-on-surface-variant text-[12px]">Total Notes</p>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-secondary/60" data-icon="database">database</span>
+<div>
+<p class="text-on-surface font-headline-md">4.2 MB</p>
+<p class="text-on-surface-variant text-[12px]">Vault Size</p>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-tertiary/60" data-icon="schedule">schedule</span>
+<div>
+<p class="text-on-surface font-headline-md">2m ago</p>
+<p class="text-on-surface-variant text-[12px]">Last Sync</p>
+</div>
+</div>
+</div>
+<!-- Folders Section -->
+<h2 class="text-on-surface-variant font-label-sm mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="folder_copy">folder_copy</span>
+                FOLDERS
+            </h2>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+<!-- Folder Card -->
+<div class="glass-panel p-4 rounded-xl hover:bg-surface-variant/30 cursor-pointer group transition-all duration-200">
+<span class="material-symbols-outlined text-primary text-[32px] mb-2 drop-shadow-[0_0_8px_rgba(208,188,255,0.3)]" data-icon="folder">folder</span>
+<p class="text-on-surface font-medium truncate">Work</p>
+<p class="text-on-surface-variant text-[11px]">42 items</p>
+</div>
+<div class="glass-panel p-4 rounded-xl hover:bg-surface-variant/30 cursor-pointer group transition-all duration-200">
+<span class="material-symbols-outlined text-primary text-[32px] mb-2 drop-shadow-[0_0_8px_rgba(208,188,255,0.3)]" data-icon="folder">folder</span>
+<p class="text-on-surface font-medium truncate">Research</p>
+<p class="text-on-surface-variant text-[11px]">18 items</p>
+</div>
+<div class="glass-panel p-4 rounded-xl hover:bg-surface-variant/30 cursor-pointer group transition-all duration-200">
+<span class="material-symbols-outlined text-primary text-[32px] mb-2 drop-shadow-[0_0_8px_rgba(208,188,255,0.3)]" data-icon="folder">folder</span>
+<p class="text-on-surface font-medium truncate">Ideas</p>
+<p class="text-on-surface-variant text-[11px]">7 items</p>
+</div>
+<div class="glass-panel p-4 rounded-xl hover:bg-surface-variant/30 cursor-pointer group transition-all duration-200">
+<span class="material-symbols-outlined text-primary text-[32px] mb-2 drop-shadow-[0_0_8px_rgba(208,188,255,0.3)]" data-icon="folder">folder</span>
+<p class="text-on-surface font-medium truncate">Personal</p>
+<p class="text-on-surface-variant text-[11px]">24 items</p>
+</div>
+</div>
+<!-- Recent Notes Section -->
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-on-surface-variant font-label-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="sticky_note_2">sticky_note_2</span>
+                    RECENT NOTES
+                </h2>
+<div class="flex gap-2">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="sort">sort</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="grid_view">grid_view</span>
+</button>
+</div>
+</div>
+<div class="space-y-2">
+<!-- File Item -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="markdown">markdown</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-on-surface font-medium truncate group-hover:text-primary transition-colors">Project_Alpha_Spec.md</h3>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                                Oct 24, 2023
+                            </span>
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="data_usage">data_usage</span>
+                                12.4 KB
+                            </span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="star">star</span></button>
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span></button>
+</div>
+</div>
+<!-- File Item -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="markdown">markdown</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-on-surface font-medium truncate group-hover:text-primary transition-colors">Brainstorming_Session.md</h3>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                                Oct 23, 2023
+                            </span>
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="data_usage">data_usage</span>
+                                4.1 KB
+                            </span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white/5 rounded-full text-primary" data-weight="fill"><span class="material-symbols-outlined text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span></button>
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span></button>
+</div>
+</div>
+<!-- File Item -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="markdown">markdown</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-on-surface font-medium truncate group-hover:text-primary transition-colors">Neural_Network_Notes.md</h3>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                                Oct 21, 2023
+                            </span>
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="data_usage">data_usage</span>
+                                28.9 KB
+                            </span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="star">star</span></button>
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span></button>
+</div>
+</div>
+<!-- File Item -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="markdown">markdown</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-on-surface font-medium truncate group-hover:text-primary transition-colors">Daily_Reflection.md</h3>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                                Oct 20, 2023
+                            </span>
+<span class="text-on-surface-variant text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="data_usage">data_usage</span>
+                                1.5 KB
+                            </span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="star">star</span></button>
+<button class="p-2 hover:bg-white/5 rounded-full text-on-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span></button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 md:right-12 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 z-50">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface/60 backdrop-blur-md border-t border-white/5 shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-50">
+<div class="flex flex-col items-center justify-center text-primary bg-primary-container/20 rounded-xl px-3 py-1 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+<span class="font-label-sm text-label-sm mt-1">Files</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="font-label-sm text-label-sm mt-1">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">AI Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm mt-1">Settings</span>
+</div>
+</nav>
+<script>
+        // Subtle interaction for glass cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+                
+                // Active rim lighting effect
+                card.style.borderColor = 'rgba(208, 188, 255, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            });
+        });
+
+        // Pulsating AI Glow for active elements
+        function animateGlow() {
+            const fab = document.querySelector('.bg-primary');
+            let opacity = 0.3;
+            let increasing = true;
+            
+            setInterval(() => {
+                if (increasing) opacity += 0.01;
+                else opacity -= 0.01;
+                
+                if (opacity >= 0.6) increasing = false;
+                if (opacity <= 0.3) increasing = true;
+                
+                fab.style.boxShadow = `0 0 20px rgba(208, 188, 255, ${opacity})`;
+            }, 50);
+        }
+        animateGlow();
+    </script>
+</body></html>

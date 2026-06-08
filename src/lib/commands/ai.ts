@@ -7,33 +7,34 @@ export async function aiChat(
   provider: string,
   model: string,
   onChunk?: (text: string) => void,
+  temperature?: number,
+  maxTokens?: number,
+  topP?: number,
 ): Promise<string> {
-  if (onChunk) {
-    const unlisten = await listen<string>('ai:chunk', (event) => {
-      onChunk(event.payload);
-    });
-
-    const result = await invoke<string>('ai_chat', {
-      messages: messages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-      provider,
-      model,
-    });
-
-    unlisten();
-    return result;
-  }
-
-  return invoke('ai_chat', {
+  const args: Record<string, unknown> = {
     messages: messages.map(m => ({
       role: m.role,
       content: m.content,
     })),
     provider,
     model,
-  });
+    temperature: temperature ?? null,
+    maxTokens: maxTokens ?? null,
+    topP: topP ?? null,
+  };
+
+  if (onChunk) {
+    const unlisten = await listen<string>('ai:chunk', (event) => {
+      onChunk(event.payload);
+    });
+
+    const result = await invoke<string>('ai_chat', args);
+
+    unlisten();
+    return result;
+  }
+
+  return invoke('ai_chat', args);
 }
 
 export async function aiTemplate(

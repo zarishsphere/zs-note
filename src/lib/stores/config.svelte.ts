@@ -7,6 +7,7 @@ import type {
   PublishTarget,
   KnowledgeBaseInfo,
   PluginConfig,
+  ImageHost,
 } from '../types';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -54,6 +55,7 @@ let syncConfig = $state<SyncConfig>({
 });
 
 let publishTargets = $state<PublishTarget[]>([]);
+let imageHost = $state<ImageHost | null>(null);
 
 let knowledgeBases = $state<KnowledgeBaseInfo[]>([]);
 let plugins = $state<PluginConfig[]>([]);
@@ -66,13 +68,14 @@ async function loadAll(): Promise<void> {
   error = null;
 
   try {
-    const [settings, vault, prov, sandbox, sync, pub, kb, pl] = await Promise.all([
+    const [settings, vault, prov, sandbox, sync, pub, img, kb, pl] = await Promise.all([
       invoke<EditorSettings>('get_editor_settings').catch(() => editorSettings),
       invoke<VaultConfig>('get_config').catch(() => vaultConfig),
       invoke<ProviderConfig[]>('get_providers').catch(() => providers),
       invoke<SandboxConfig>('get_sandbox_config').catch(() => sandboxConfig),
       invoke<SyncConfig>('get_sync_config').catch(() => syncConfig),
       invoke<PublishTarget[]>('get_publish_targets').catch(() => publishTargets),
+      invoke<ImageHost | null>('get_image_host').catch(() => imageHost),
       invoke<KnowledgeBaseInfo[]>('kb_list').catch(() => knowledgeBases),
       invoke<PluginConfig[]>('plugin_list').catch(() => plugins),
     ]);
@@ -83,6 +86,7 @@ async function loadAll(): Promise<void> {
     sandboxConfig = sandbox;
     syncConfig = sync;
     publishTargets = pub;
+    imageHost = img;
     knowledgeBases = kb;
     plugins = pl;
   } catch (err) {
@@ -146,6 +150,15 @@ async function savePublishTargets(): Promise<void> {
   }
 }
 
+async function saveImageHost(): Promise<void> {
+  try {
+    await invoke('save_image_host', { host: imageHost });
+  } catch (err) {
+    error = String(err);
+    throw err;
+  }
+}
+
 export function getConfigStore() {
   return {
     get editorSettings() { return editorSettings; },
@@ -160,6 +173,8 @@ export function getConfigStore() {
     set syncConfig(v: SyncConfig) { syncConfig = v; },
     get publishTargets() { return publishTargets; },
     set publishTargets(v: PublishTarget[]) { publishTargets = v; },
+    get imageHost() { return imageHost; },
+    set imageHost(v: ImageHost | null) { imageHost = v; },
     get knowledgeBases() { return knowledgeBases; },
     set knowledgeBases(v: KnowledgeBaseInfo[]) { knowledgeBases = v; },
     get plugins() { return plugins; },
@@ -173,5 +188,6 @@ export function getConfigStore() {
     saveSandboxConfig,
     saveSyncConfig,
     savePublishTargets,
+    saveImageHost,
   };
 }

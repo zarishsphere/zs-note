@@ -1,17 +1,21 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
+  import { getMcpStore } from '../stores/mcp.svelte';
+  import McpConfirmationDialog from './McpConfirmationDialog.svelte';
   import type { McpServerInfo } from '../types';
 
+  const mcp = getMcpStore();
+
   let {
-    servers = [] as McpServerInfo[],
     onUpdate = () => {},
   }: {
-    servers?: McpServerInfo[];
     onUpdate?: () => void;
   } = $props();
 
   let showAddForm = $state(false);
   let newServer = $state<Partial<McpServerInfo>>({
+    id: '',
     name: '',
     transport: 'stdio',
     command: '',
@@ -21,31 +25,32 @@
     enabled: true,
   });
   let testingId = $state<string | null>(null);
-  let error = $state<string | null>(null);
+  let localError = $state<string | null>(null);
+
+  onMount(() => {
+    mcp.loadServers();
+  });
+
+  // Watch for server updates
+  $effect(() => {
+    if (mcp.servers.length > 0) {
+      onUpdate();
+    }
+  });
 
   function handleToggle(id: string, enabled: boolean) {
-    invoke('mcp_toggle_server', { id, enabled })
-      .then(() => onUpdate())
-      .catch((err) => { error = String(err); });
+    mcp.toggleServer(id, enabled).catch((err) => { localError = String(err); });
   }
 
   function handleTest(id: string) {
     testingId = id;
-    invoke<boolean>('mcp_test_connection', { id })
-      .then((ok) => {
-        if (ok) {
-          onUpdate();
-        }
-      })
-      .catch((err) => { error = String(err); })
+    mcp.testConnection(id)
       .finally(() => { testingId = null; });
   }
 
   function handleRemove(id: string) {
     if (!confirm('Remove this MCP server?')) return;
-    invoke('mcp_remove_server', { id })
-      .then(() => onUpdate())
-      .catch((err) => { error = String(err); });
+    mcp.removeServer(id).catch((err) => { localError = String(err); });
   }
 
   function handleAddServer() {
@@ -54,10 +59,19 @@
     invoke('mcp_add_server', { server: newServer as McpServerInfo })
       .then(() => {
         showAddForm = false;
-        newServer = { name: '', transport: 'stdio', command: '', args: [], url: '', env: {}, enabled: true };
-        onUpdate();
+        newServer = {
+          id: '',
+          name: '',
+          transport: 'stdio',
+          command: '',
+          args: [],
+          url: '',
+          env: {},
+          enabled: true,
+        };
+        mcp.loadServers();
       })
-      .catch((err) => { error = String(err); });
+      .catch((err) => { localError = String(err); });
   }
 
   function addEnvVar() {
@@ -85,11 +99,42 @@
       default: return '';
     }
   }
+
+  // Confirmation dialog handlers
+  function handleConfirm() {
+    if (mcp.pendingConfirmation) {
+      mcp.resolveConfirmation(mcp.pendingConfirmation.id, true, false);
+    }
+  }
+
+  function handleConfirmAlways() {
+    if (mcp.pendingConfirmation) {
+      mcp.resolveConfirmation(mcp.pendingConfirmation.id, true, true);
+    }
+  }
+
+  function handleDeny() {
+    if (mcp.pendingConfirmation) {
+      mcp.resolveConfirmation(mcp.pendingConfirmation.id, false, false);
+    }
+  }
+
+  function handleCloseDialog() {
+    mcp.dismissConfirmation();
+  }
 </script>
 
 <div class="mcp-manager">
   <div class="manager-header">
     <h3 class="text-sm font-bold">MCP Servers</h3>
+    <div class="header-badges">
+      {#if mcp.connectedCount > 0}
+        <span class="badge badge-success">{mcp.connectedCount} connected</span>
+      {/if}
+      {#if mcp.totalTools > 0}
+        <span class="badge">{mcp.totalTools} tools</span>
+      {/if}
+    </div>
     <button class="btn btn-primary btn-sm" onclick={() => { showAddForm = !showAddForm; }}>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
         <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -98,10 +143,16 @@
     </button>
   </div>
 
-  {#if error}
+  {#if localError}
     <div class="error-banner">
-      <span class="text-sm" style="color: var(--color-error)">{error}</span>
-      <button class="btn btn-ghost btn-icon" onclick={() => { error = null; }}>×</button>
+      <span class="text-sm" style="color: var(--color-error)">{localError}</span>
+      <button class="btn btn-ghost btn-icon" onclick={() => { localError = null; }}>×</button>
+    </div>
+  {/if}
+
+  {#if mcp.error}
+    <div class="error-banner">
+      <span class="text-sm" style="color: var(--color-error)">{mcp.error}</span>
     </div>
   {/if}
 
@@ -165,47 +216,61 @@
     </div>
   {/if}
 
-  <div class="server-list">
-    {#if servers.length === 0}
-      <div class="empty-state text-muted text-sm">
-        No MCP servers configured. Add one to extend AI capabilities.
-      </div>
-    {:else}
-      {#each servers as server}
-        <div class="server-card" class:disabled={!server.enabled}>
-          <div class="server-info">
-            <div class="server-name">{server.name}</div>
-            <span class="badge {getStatusClass(server.status)}">{server.status}</span>
-          </div>
-          <div class="server-meta text-xs text-muted">
-            {server.transport} · {server.tools?.length ?? 0} tools
-          </div>
-          {#if server.errorMessage}
-            <div class="error-message text-xs">{server.errorMessage}</div>
-          {/if}
-          <div class="server-actions">
-            <label class="toggle-label">
-              <input
-                type="checkbox"
-                checked={server.enabled}
-                onchange={(e) => handleToggle(server.id, (e.target as HTMLInputElement).checked)}
-              />
-              <span class="toggle-slider" />
-            </label>
-            <button
-              class="btn btn-ghost btn-sm"
-              onclick={() => handleTest(server.id)}
-              disabled={testingId === server.id}
-            >
-              {testingId === server.id ? 'Testing...' : 'Test'}
-            </button>
-            <button class="btn btn-ghost btn-sm danger" onclick={() => handleRemove(server.id)}>Remove</button>
-          </div>
+  {#if mcp.isLoading}
+    <div class="loading-state text-muted text-sm">Loading servers...</div>
+  {:else}
+    <div class="server-list">
+      {#if mcp.servers.length === 0}
+        <div class="empty-state text-muted text-sm">
+          No MCP servers configured. Add one to extend AI capabilities.
         </div>
-      {/each}
-    {/if}
-  </div>
+      {:else}
+        {#each mcp.servers as server}
+          <div class="server-card" class:disabled={!server.enabled}>
+            <div class="server-info">
+              <div class="server-name">{server.name}</div>
+              <span class="badge {getStatusClass(server.status)}">{server.status}</span>
+            </div>
+            <div class="server-meta text-xs text-muted">
+              {server.transport} · {server.tools?.length ?? 0} tools
+            </div>
+            {#if server.errorMessage}
+              <div class="error-message text-xs">{server.errorMessage}</div>
+            {/if}
+            <div class="server-actions">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={server.enabled}
+                  onchange={(e) => handleToggle(server.id, (e.target as HTMLInputElement).checked)}
+                />
+                <span class="toggle-slider" />
+              </label>
+              <button
+                class="btn btn-ghost btn-sm"
+                onclick={() => handleTest(server.id)}
+                disabled={testingId === server.id}
+              >
+                {testingId === server.id ? 'Testing...' : 'Test'}
+              </button>
+              <button class="btn btn-ghost btn-sm danger" onclick={() => handleRemove(server.id)}>Remove</button>
+            </div>
+          </div>
+        {/each}
+      {/if}
+    </div>
+  {/if}
 </div>
+
+{#if mcp.pendingConfirmation}
+  <McpConfirmationDialog
+    request={mcp.pendingConfirmation}
+    onConfirm={handleConfirm}
+    onConfirmAlways={handleConfirmAlways}
+    onDeny={handleDeny}
+    onClose={handleCloseDialog}
+  />
+{/if}
 
 <style>
   .mcp-manager {
@@ -217,6 +282,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .header-badges {
+    display: flex;
+    gap: 6px;
   }
   .error-banner {
     display: flex;
@@ -261,6 +332,10 @@
     gap: 8px;
     padding-top: 8px;
     border-top: 1px solid var(--color-border);
+  }
+  .loading-state {
+    text-align: center;
+    padding: 24px;
   }
   .server-list {
     display: flex;
@@ -348,3 +423,4 @@
     transform: translateX(14px);
   }
 </style>
+

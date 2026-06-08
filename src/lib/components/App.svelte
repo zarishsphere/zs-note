@@ -8,6 +8,12 @@
   import APIKeyManager from './APIKeyManager.svelte';
   import ContextInspector from './ContextInspector.svelte';
   import HistoryBrowser from './HistoryBrowser.svelte';
+  import TabBar from './TabBar.svelte';
+  import ImageGenerationDialog from './ImageGenerationDialog.svelte';
+  import SkipLink from '../a11y/SkipLink.svelte';
+  import Announcements from '../a11y/Announcements.svelte';
+  import { announce } from '../a11y/announce';
+  import { getI18n } from '../i18n';
   import { getEditorStore } from '../stores/editor.svelte';
   import { getFilesStore } from '../stores/files.svelte';
   import { getAIStore } from '../stores/ai.svelte';
@@ -17,6 +23,13 @@
   const files = getFilesStore();
   const ai = getAIStore();
   const config = getConfigStore();
+  const i18n = getI18n();
+
+  /* Sync document direction and lang with locale */
+  $effect(() => {
+    document.documentElement.dir = i18n.direction;
+    document.documentElement.lang = i18n.locale;
+  });
 
   let showSidebar = $state(true);
   let showAIPanel = $state(false);
@@ -24,6 +37,7 @@
   let showAPIKeys = $state(false);
   let showContextInspector = $state(false);
   let showHistory = $state(false);
+  let showImageGen = $state(false);
   let sidebarWidth = $state(280);
 
   onMount(() => {
@@ -65,6 +79,11 @@
       e.preventDefault();
       showHistory = !showHistory;
     }
+
+    if (mod && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+      e.preventDefault();
+      showImageGen = !showImageGen;
+    }
   }
 
   function toggleSettings() {
@@ -95,14 +114,19 @@
 
     if (e.type === 'file:create') {
       files.createFile(detail.path);
+      announce(`Created ${detail.path}`, 'polite');
     } else if (e.type === 'file:create-folder') {
       files.createFolder(detail.path);
+      announce(`Created folder ${detail.path}`, 'polite');
     } else if (e.type === 'file:delete') {
       files.deleteFile(detail.path);
+      announce(`Deleted ${detail.path}`, 'assertive');
     } else if (e.type === 'file:rename') {
       files.renameFile(detail.oldPath, detail.newPath);
+      announce(`Renamed to ${detail.newPath}`, 'polite');
     } else if (e.type === 'file:duplicate') {
       files.duplicateFile(detail.path);
+      announce(`Duplicated ${detail.path}`, 'polite');
     }
   }
 
@@ -121,6 +145,10 @@
 </script>
 
 <div class="app-container">
+  <!-- Accessibility: Skip link & announcements -->
+  <SkipLink />
+  <Announcements />
+
   <!-- Title Bar -->
   <header class="titlebar">
     <div class="titlebar-left">
@@ -135,7 +163,7 @@
           <line x1="5" y1="1" x2="5" y2="15" stroke="currentColor" stroke-width="1.5" />
         </svg>
       </button>
-      <span class="app-name">ZarishNote</span>
+      <span class="app-name">{i18n.t('app.name')}</span>
       {#if editor.activeFilePath}
         <span class="file-breadcrumb text-muted text-sm truncate">
           {editor.activeFilePath}
@@ -181,6 +209,18 @@
       </button>
       <button
         class="btn btn-ghost btn-icon"
+        onclick={() => { showImageGen = !showImageGen; }}
+        title="Generate Image (⌘⇧I)"
+        aria-label="Generate Image"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+        </svg>
+      </button>
+      <button
+        class="btn btn-ghost btn-icon"
         onclick={() => { showAPIKeys = !showAPIKeys; }}
         title="API Keys"
         aria-label="API Keys"
@@ -212,7 +252,14 @@
       </div>
     {/if}
 
-    <div class="editor-area">
+    <div class="editor-area" id="main-content" tabindex="-1">
+      {#if editor.openTabs.length > 0}
+        <TabBar
+          onSelect={(path) => editor.selectTab(path)}
+          onClose={(path) => editor.closeTab(path)}
+          onReorder={(from, to) => editor.reorderTabs(from, to)}
+        />
+      {/if}
       <Editor
         content={editor.content}
         filePath={editor.activeFilePath}
@@ -260,6 +307,18 @@
     <APIKeyManager
       show={showAPIKeys}
       onClose={() => { showAPIKeys = false; }}
+    />
+  {/if}
+
+  {#if showImageGen}
+    <ImageGenerationDialog
+      show={showImageGen}
+      onClose={() => { showImageGen = false; }}
+      onInsert={(dataUrl: string) => {
+        const markdown = `![generated-image](${dataUrl})`;
+        const event = new CustomEvent('ai:insert', { detail: { content: markdown } });
+        window.dispatchEvent(event);
+      }}
     />
   {/if}
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import Modal from './Modal.svelte';
   import MCPManager from './MCPManager.svelte';
+  import LocaleSwitcher from '../i18n/LocaleSwitcher.svelte';
   import { getConfigStore } from '../stores/config.svelte';
   import { getAIStore } from '../stores/ai.svelte';
   import { invoke } from '@tauri-apps/api/core';
@@ -42,6 +43,7 @@
       config.saveSandboxConfig(),
       config.saveSyncConfig(),
       config.savePublishTargets(),
+      config.saveImageHost(),
     ])
       .then(() => {
         ai.setProviders(config.providers);
@@ -70,6 +72,20 @@
     config.providers = config.providers.filter(p => p.id !== id);
   }
 
+  // --- Image Hosting derived from config ---
+  let imageHostType = $state<'github' | 'cloudflare'>(config.imageHost?.type ?? 'github');
+  let imageRepo = $state(config.imageHost?.repo ?? '');
+  let imageBranch = $state(config.imageHost?.branch ?? 'main');
+  let imageToken = $state('');
+  let imageAccountId = $state(config.imageHost?.accountId ?? '');
+  let imageApiToken = $state('');
+
+  // --- RSS Settings State ---
+  let rssTitle = $state('ZarishNote Vault');
+  let rssDescription = $state('Published notes from ZarishNote');
+  let rssMaxItems = $state(50);
+  let rssIncludeFullContent = $state(true);
+
   function handleNewPublishTarget() {
     config.publishTargets = [
       ...config.publishTargets,
@@ -89,6 +105,20 @@
 
   function handleRemovePublishTarget(id: string) {
     config.publishTargets = config.publishTargets.filter(t => t.id !== id);
+  }
+
+  function handleSaveImageHost() {
+    config.imageHost = {
+      type: imageHostType,
+      repo: imageRepo || undefined,
+      branch: imageBranch || 'main',
+      token: imageToken || undefined,
+      accountId: imageAccountId || undefined,
+      apiToken: imageApiToken || undefined,
+    };
+    config.saveImageHost().catch((err) => {
+      error = String(err);
+    });
   }
 </script>
 
@@ -154,6 +184,10 @@
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
               </select>
+            </div>
+            <div class="input-group">
+              <label>Language</label>
+              <LocaleSwitcher />
             </div>
           </div>
           <div class="settings-checks">
@@ -337,16 +371,57 @@
                     <option value="gitlab">GitLab</option>
                     <option value="s3">S3</option>
                     <option value="r2">Cloudflare R2</option>
-                    <option value="custom">Custom</option>
+                    <option value="custom_api">Custom API</option>
+                    <option value="rss">RSS Feed</option>
                   </select>
                 </div>
-                <div class="input-group">
-                  <label>URL / Repository</label>
-                  <input type="text" value={target.url ?? ''} oninput={(e) => { target.url = (e.target as HTMLInputElement).value; }} />
-                </div>
-                <div class="input-group">
-                  <label>Branch</label>
-                  <input type="text" value={target.branch ?? ''} oninput={(e) => { target.branch = (e.target as HTMLInputElement).value; }} />
+                {#if target.type === 'github' || target.type === 'gitlab'}
+                  <div class="input-group">
+                    <label>Repository URL</label>
+                    <input type="text" value={target.url ?? ''} oninput={(e) => { target.url = (e.target as HTMLInputElement).value; }} placeholder="https://github.com/user/repo" />
+                  </div>
+                  <div class="input-group">
+                    <label>Branch</label>
+                    <input type="text" value={target.branch ?? ''} oninput={(e) => { target.branch = (e.target as HTMLInputElement).value; }} placeholder="main" />
+                  </div>
+                {:else if target.type === 'custom_api'}
+                  <div class="input-group">
+                    <label>API Endpoint</label>
+                    <input type="text" value={target.endpoint ?? ''} oninput={(e) => { target.endpoint = (e.target as HTMLInputElement).value; }} placeholder="https://api.example.com/publish" />
+                  </div>
+                {:else if target.type === 'rss'}
+                  <div class="input-group">
+                    <label>Output Path (optional)</label>
+                    <input type="text" value={target.url ?? ''} oninput={(e) => { target.url = (e.target as HTMLInputElement).value; }} placeholder="rss.xml" />
+                  </div>
+                {:else}
+                  <div class="input-group">
+                    <label>URL / Endpoint</label>
+                    <input type="text" value={target.url ?? ''} oninput={(e) => { target.url = (e.target as HTMLInputElement).value; }} />
+                  </div>
+                  <div class="input-group">
+                    <label>Branch</label>
+                    <input type="text" value={target.branch ?? ''} oninput={(e) => { target.branch = (e.target as HTMLInputElement).value; }} />
+                  </div>
+                {/if}
+                <!-- Default publish options per target -->
+                <div class="settings-checks" style="margin-top: 6px;">
+                  <label class="check-row">
+                    <input type="checkbox" checked={target.uploadImages} onchange={(e) => { target.uploadImages = (e.target as HTMLInputElement).checked; }} />
+                    <span>Upload images</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" checked={target.convertWikilinks} onchange={(e) => { target.convertWikilinks = (e.target as HTMLInputElement).checked; }} />
+                    <span>Convert [[wikilinks]]</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" checked={target.stripPrivate} onchange={(e) => { target.stripPrivate = (e.target as HTMLInputElement).checked; }} />
+                    <span>Strip private tags</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" checked={target.generateRss} onchange={(e) => { target.generateRss = (e.target as HTMLInputElement).checked; }} />
+                    <span>Generate RSS feed</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -357,6 +432,68 @@
             </svg>
             Add Target
           </button>
+        </div>
+
+        <!-- Image Hosting Configuration -->
+        <div class="settings-section" style="margin-top: 16px;">
+          <h3 class="section-title">Image Hosting</h3>
+          <p class="text-muted text-sm">Configure where images are uploaded when publishing.</p>
+          <div class="input-group">
+            <label>Host Type</label>
+            <select bind:value={imageHostType}>
+              <option value="github">GitHub Repository</option>
+              <option value="cloudflare">Cloudflare Images</option>
+            </select>
+          </div>
+          {#if imageHostType === 'github'}
+            <div class="input-group">
+              <label>Repository (owner/repo)</label>
+              <input type="text" bind:value={imageRepo} placeholder="username/repository" />
+            </div>
+            <div class="input-group">
+              <label>Branch</label>
+              <input type="text" bind:value={imageBranch} placeholder="main" />
+            </div>
+            <div class="input-group">
+              <label>Access Token</label>
+              <input type="password" bind:value={imageToken} placeholder="GitHub Personal Access Token" />
+            </div>
+          {:else}
+            <div class="input-group">
+              <label>Cloudflare Account ID</label>
+              <input type="text" bind:value={imageAccountId} placeholder="Account ID" />
+            </div>
+            <div class="input-group">
+              <label>API Token</label>
+              <input type="password" bind:value={imageApiToken} placeholder="Cloudflare API Token" />
+            </div>
+          {/if}
+          <button class="btn btn-secondary btn-sm" onclick={handleSaveImageHost}>
+            Save Image Host Config
+          </button>
+        </div>
+
+        <!-- RSS Feed Settings -->
+        <div class="settings-section" style="margin-top: 16px;">
+          <h3 class="section-title">RSS Feed Settings</h3>
+          <div class="input-group">
+            <label>Feed Title</label>
+            <input type="text" bind:value={rssTitle} placeholder="ZarishNote Vault" />
+          </div>
+          <div class="input-group">
+            <label>Feed Description</label>
+            <input type="text" bind:value={rssDescription} placeholder="Published notes from ZarishNote" />
+          </div>
+          <div class="input-group">
+            <label>Max Items</label>
+            <input type="number" bind:value={rssMaxItems} min="10" max="500" />
+          </div>
+          <div class="settings-checks">
+            <label class="check-row">
+              <input type="checkbox" bind:checked={rssIncludeFullContent} />
+              <span>Include full content in RSS</span>
+            </label>
+          </div>
         </div>
 
       <!-- Sync Settings -->

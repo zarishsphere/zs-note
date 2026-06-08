@@ -235,6 +235,7 @@ pub struct ChatCompletionRequest {
     pub provider: Provider,
     pub temperature: Option<f32>,
     pub max_tokens: Option<u32>,
+    pub top_p: Option<f32>,
     pub stream: bool,
 }
 
@@ -252,6 +253,16 @@ pub struct TokenUsage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedImage {
+    pub data: String, // base64-encoded image data
+    pub mime_type: String,
+    pub model: String,
+    pub prompt: String,
+    pub seed: Option<u64>,
+    pub revised_prompt: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StreamEvent {
     Token { content: String },
     Done { usage: Option<TokenUsage> },
@@ -264,6 +275,34 @@ pub struct ConverterInfo {
     pub description: String,
     pub input_formats: Vec<String>,
     pub output_formats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarketplaceServerInfo {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub version: String,
+    pub author: String,
+    pub downloads: u64,
+    pub rating: Option<f64>,
+    pub transport: String,
+    pub homepage: Option<String>,
+    pub license: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PluginInfo {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub author: String,
+    pub enabled: bool,
+    pub wasm_path: String,
+    pub permissions: Vec<String>,
+    pub homepage: Option<String>,
+    pub source: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -303,4 +342,79 @@ pub struct VaultConfig {
     pub vault_type: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub version: String,
+}
+
+// ---------------------------------------------------------------------------
+// Voice / Audio types
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoiceDevice {
+    pub id: String,
+    pub name: String,
+    pub is_default: bool,
+    pub channels: u16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioFileInfo {
+    pub path: String,
+    pub duration_secs: f64,
+    pub sample_rate: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublishOptions {
+    #[serde(rename = "uploadImages")]
+    pub upload_images: bool,
+    #[serde(rename = "convertWikilinks")]
+    pub convert_wikilinks: bool,
+    #[serde(rename = "stripPrivate")]
+    pub strip_private: bool,
+    #[serde(rename = "generateRss")]
+    pub generate_rss: bool,
+    #[serde(rename = "customEndpoint")]
+    pub custom_endpoint: Option<String>,
+    #[serde(rename = "customHeaders")]
+    pub custom_headers: Option<Vec<HeaderPair>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeaderPair {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicationRecord {
+    pub id: String,
+    #[serde(rename = "targetName")]
+    pub target_name: String,
+    #[serde(rename = "filePath")]
+    pub file_path: String,
+    #[serde(rename = "publishedAt")]
+    pub published_at: chrono::DateTime<chrono::Utc>,
+    pub status: String,
+    pub url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageHost {
+    #[serde(rename = "type")]
+    pub host_type: ImageHostType,
+    pub repo: Option<String>,
+    pub branch: Option<String>,
+    pub token: Option<String>,
+    #[serde(rename = "accountId")]
+    pub account_id: Option<String>,
+    #[serde(rename = "apiToken")]
+    pub api_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ImageHostType {
+    #[serde(rename = "github")]
+    GitHub,
+    #[serde(rename = "cloudflare")]
+    Cloudflare,
 }

@@ -34,6 +34,14 @@ all = [
     "zarishnote-ingest[epub]",
     "zarishnote-ingest[youtube]",
 ]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+dev = [
+    "zarishnote-ingest[test]",
+    "zarishnote-ingest[all]",
+]
 
 [project.urls]
 homepage = "https://github.com/zarishsphere/zs-note"
@@ -42,5 +50,13 @@ repository = "https://github.com/zarishsphere/zs-note"
 [project.scripts]
 zarishnote-ingest = "zarishnote_ingest.cli:main"
 
+[tool.hatch.envs.default]
+dependencies = ["zarishnote-ingest[test]"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/zarishnote_ingest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"

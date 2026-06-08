@@ -1,4 +1,4 @@
-import type { FileEntry } from '../types';
+import type { FileEntry, IngestProgress } from '../types';
 import * as editorCommands from '../commands/editor';
 
 let activeFilePath = $state<string>('');
@@ -8,6 +8,9 @@ let editorMode = $state<'wysiwyg' | 'source' | 'split'>('wysiwyg');
 let cursorPosition = $state<{ line: number; col: number }>({ line: 1, col: 1 });
 let isLoading = $state(false);
 let error = $state<string | null>(null);
+
+// ── Ingestion progress ──────────────────────────────────────────────────────
+let ingestProgress = $state<IngestProgress[]>([]);
 
 const isDirty = $derived(content !== previousContent);
 
@@ -60,6 +63,31 @@ function closeFile(): void {
   previousContent = '';
 }
 
+// ── Ingestion helpers ───────────────────────────────────────────────────────
+
+function addIngestItem(item: IngestProgress): void {
+  ingestProgress = [...ingestProgress, item];
+}
+
+function updateIngestProgress(fileName: string, percent: number, status: IngestProgress['status'], errorMsg?: string): void {
+  ingestProgress = ingestProgress.map((item) =>
+    item.fileName === fileName
+      ? { ...item, percent, status, error: errorMsg ?? item.error }
+      : item,
+  );
+}
+
+function clearIngestProgress(): void {
+  ingestProgress = [];
+}
+
+function handleDrop(_files: File[]): void {
+  // The actual drop handling is done in the Editor component's drag-and-drop event handler.
+  // This function is available for programmatic use from other parts of the app.
+  // It clears previous progress for a new batch.
+  clearIngestProgress();
+}
+
 export function getEditorStore() {
   return {
     get activeFilePath() { return activeFilePath; },
@@ -69,11 +97,17 @@ export function getEditorStore() {
     get isDirty() { return isDirty; },
     get isLoading() { return isLoading; },
     get error() { return error; },
+    set error(v: string | null) { error = v; },
+    get ingestProgress() { return ingestProgress; },
     openFile,
     saveFile,
     setMode,
     updateContent,
     setCursorPosition,
     closeFile,
+    addIngestItem,
+    updateIngestProgress,
+    clearIngestProgress,
+    handleDrop,
   };
 }

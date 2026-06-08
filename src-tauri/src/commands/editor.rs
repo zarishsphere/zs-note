@@ -211,6 +211,27 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, Strin
         .collect())
 }
 
+/// Write raw bytes to a file (used for drag-and-drop ingestion).
+#[tauri::command]
+pub fn write_file(state: State<'_, AppState>, path: String, content: Vec<u8>) -> Result<(), String> {
+    let full_path = resolve_vault_path(&state.vault_path, &path)?;
+    if let Some(parent) = full_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directories: {}", e))?;
+    }
+    std::fs::write(&full_path, &content).map_err(|e| format!("Failed to write file: {}", e))?;
+    Ok(())
+}
+
+/// Get a temporary directory path for file operations.
+#[tauri::command]
+pub fn get_temp_dir(state: State<'_, AppState>) -> Result<String, String> {
+    let temp_dir = state.vault_path.join(".znrc-temp");
+    std::fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to create temp dir: {}", e))?;
+    Ok(temp_dir.to_string_lossy().to_string())
+}
+
 fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {
     let cleaned = user_path.trim_start_matches('/');
     let candidate = vault_root.join(cleaned);

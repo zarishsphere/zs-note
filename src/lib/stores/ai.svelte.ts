@@ -10,6 +10,11 @@ let templates = $state<Template[]>([]);
 let streamingContent = $state('');
 let error = $state<string | null>(null);
 
+// AI parameter controls
+let temperature = $state<number>(0.7);
+let maxTokens = $state<number>(2048);
+let topP = $state<number>(1.0);
+
 let abortController: AbortController | null = null;
 
 function addMessage(role: ChatMessage['role'], content: string): ChatMessage {
@@ -61,6 +66,9 @@ async function sendMessage(input: string): Promise<void> {
           m.id === assistantMsg.id ? { ...m, content: streamingContent } : m,
         );
       },
+      temperature,
+      maxTokens,
+      topP,
     );
 
     messages = messages.map(m =>
@@ -153,6 +161,18 @@ function setProviders(configs: ProviderConfig[]): void {
   }
 }
 
+function setTemperature(t: number): void {
+  temperature = t;
+}
+
+function setMaxTokens(t: number): void {
+  maxTokens = t;
+}
+
+function setTopP(t: number): void {
+  topP = t;
+}
+
 export function getAIStore() {
   return {
     get messages() { return messages; },
@@ -162,6 +182,9 @@ export function getAIStore() {
     get providers() { return providers; },
     get templates() { return templates; },
     get error() { return error; },
+    get temperature() { return temperature; },
+    get maxTokens() { return maxTokens; },
+    get topP() { return topP; },
     addMessage,
     sendMessage,
     stopStreaming,
@@ -173,5 +196,8 @@ export function getAIStore() {
     setProvider,
     setModel,
     setProviders,
+    setTemperature,
+    setMaxTokens,
+    setTopP,
   };
 }

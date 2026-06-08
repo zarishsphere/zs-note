@@ -15,6 +15,7 @@
 
   let inputText = $state('');
   let showTemplatePicker = $state(false);
+  let showParams = $state(false);
   let messagesEnd: HTMLDivElement;
 
   $effect(() => {
@@ -61,6 +62,21 @@
   function handleRetry() {
     ai.retryLastMessage();
   }
+
+  function handleTempInput(e: Event) {
+    const val = parseFloat((e.target as HTMLInputElement).value);
+    if (!isNaN(val)) ai.setTemperature(val);
+  }
+
+  function handleMaxTokensInput(e: Event) {
+    const val = parseInt((e.target as HTMLInputElement).value, 10);
+    if (!isNaN(val)) ai.setMaxTokens(Math.max(1, Math.min(16384, val)));
+  }
+
+  function handleTopPInput(e: Event) {
+    const val = parseFloat((e.target as HTMLInputElement).value);
+    if (!isNaN(val)) ai.setTopP(val);
+  }
 </script>
 
 <aside class="ai-panel" class:visible={visible} role="complementary" aria-label="AI Chat">
@@ -95,6 +111,83 @@
           <option value={m}>{m}</option>
         {/each}
       </select>
+    </div>
+
+    <!-- Collapsible Parameters section -->
+    <div class="params-section">
+      <button
+        class="params-toggle"
+        onclick={() => { showParams = !showParams; }}
+        aria-expanded={showParams}
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          class:rotated={showParams}
+          style="transition: transform 0.15s ease;"
+        >
+          <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Parameters
+      </button>
+
+      {#if showParams}
+        <div class="params-body">
+          <!-- Temperature -->
+          <div class="param-row">
+            <label class="param-label" for="ai-temp">Temperature</label>
+            <div class="param-control">
+              <input
+                id="ai-temp"
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={ai.temperature}
+                oninput={handleTempInput}
+                class="param-slider"
+              />
+              <span class="param-value">{ai.temperature.toFixed(1)}</span>
+            </div>
+          </div>
+
+          <!-- Max Tokens -->
+          <div class="param-row">
+            <label class="param-label" for="ai-maxtokens">Max Tokens</label>
+            <div class="param-control">
+              <input
+                id="ai-maxtokens"
+                type="number"
+                min="1"
+                max="16384"
+                value={ai.maxTokens}
+                oninput={handleMaxTokensInput}
+                class="param-number-input"
+              />
+            </div>
+          </div>
+
+          <!-- Top P -->
+          <div class="param-row">
+            <label class="param-label" for="ai-topp">Top P</label>
+            <div class="param-control">
+              <input
+                id="ai-topp"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={ai.topP}
+                oninput={handleTopPInput}
+                class="param-slider"
+              />
+              <span class="param-value">{ai.topP.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
 
     <div class="panel-actions">
@@ -281,6 +374,100 @@
     font-size: 11px;
     padding: 3px 8px;
   }
+
+  /* Parameters section */
+  .params-section {
+    border-top: 1px solid var(--color-border);
+    padding-top: 6px;
+  }
+  .params-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    width: 100%;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color var(--transition-fast);
+  }
+  .params-toggle:hover {
+    color: var(--color-text);
+  }
+  .params-toggle svg.rotated {
+    transform: rotate(90deg);
+  }
+  .params-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 0 2px;
+  }
+  .param-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .param-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+  .param-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .param-slider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .param-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 2px solid var(--color-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  .param-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 2px solid var(--color-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  .param-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text);
+    min-width: 32px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .param-number-input {
+    width: 80px;
+    font-size: 12px;
+    padding: 2px 6px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
   .messages-container {
     flex: 1;
     overflow-y: auto;

@@ -13,6 +13,12 @@ pub struct SearchFilters {
     pub case_sensitive: Option<bool>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct EmbeddingConfig {
+    pub enabled: bool,
+    pub model: Option<String>,
+}
+
 #[tauri::command]
 pub fn search_files(
     state: State<'_, AppState>,
@@ -92,4 +98,60 @@ pub fn search_files(
 
     results.sort_by(|a, b| b.1.cmp(&a.1));
     Ok(results.into_iter().map(|(r, _)| r).take(50).collect())
+}
+
+/// Enable or disable embedding-based search in the vector store.
+#[tauri::command]
+pub fn set_embeddings_enabled(state: State<'_, AppState>, enabled: bool) -> Result<(), String> {
+    state.vector.enable_embeddings(enabled);
+    Ok(())
+}
+
+/// Set the embedding model name.
+#[tauri::command]
+pub fn set_embedding_model(state: State<'_, AppState>, model: String) -> Result<(), String> {
+    state.vector.set_embedding_model(Some(model));
+    Ok(())
+}
+
+/// Get the current embedding configuration.
+#[tauri::command]
+pub fn get_embedding_config(state: State<'_, AppState>) -> Result<EmbeddingConfig, String> {
+    Ok(EmbeddingConfig {
+        enabled: state.vector.is_embeddings_enabled(),
+        model: state.vector.get_embedding_model(),
+    })
+}
+
+/// Perform a vector search query with optional embedding support.
+#[tauri::command]
+pub fn vector_search(
+    state: State<'_, AppState>,
+    query: String,
+    kb_name: String,
+    top_k: usize,
+    use_embeddings: bool,
+    min_score: f64,
+) -> Result<Vec<SearchResult>, String> {
+    if use_embeddings && state.vector.is_embeddings_enabled() {
+        Ok(state
+            .vector
+            .query_with_embeddings(&query, &kb_name, top_k, min_score))
+    } else {
+        Ok(state.vector.query(&query, &kb_name, top_k))
+    }
+}
+
+/// Perform a hybrid search combining keyword and embedding scores.
+#[tauri::command]
+pub fn hybrid_search(
+    state: State<'_, AppState>,
+    query: String,
+    keyword_weight: f64,
+    semantic_weight: f64,
+    top_k: usize,
+) -> Result<Vec<SearchResult>, String> {
+    Ok(state
+        .vector
+        .hybrid_search(&query, keyword_weight, semantic_weight, top_k))
 }

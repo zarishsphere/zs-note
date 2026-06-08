@@ -3,9 +3,13 @@ pub mod config;
 pub mod credentials;
 pub mod editor;
 pub mod git;
+pub mod image_gen;
 pub mod import;
 pub mod ingest;
 pub mod mcp;
+pub mod plugins;
+pub mod publish;
 pub mod sandbox;
 pub mod search;
+#[cfg(feature = "voice")]
 pub mod voice;

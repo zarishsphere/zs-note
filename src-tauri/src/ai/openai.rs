@@ -51,6 +51,9 @@ impl OpenAIProvider {
         if let Some(max_tokens) = request.max_tokens {
             payload["max_tokens"] = json!(max_tokens);
         }
+        if let Some(top_p) = request.top_p {
+            payload["top_p"] = json!(top_p);
+        }
 
         payload
     }

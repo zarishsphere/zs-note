@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use crate::types::{
-    EditorSettings, KnowledgeBase, PublishTarget, SyncConfig, ToolConfig, VaultConfig,
+    EditorSettings, ImageHost, KnowledgeBase, PublishTarget, SyncConfig, ToolConfig,
+    VaultConfig,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -176,6 +177,8 @@ pub struct Config {
     pub voice: VoiceConfig,
     pub knowledge: Vec<KnowledgeBase>,
     pub publish: Vec<PublishTarget>,
+    #[serde(rename = "imageHost")]
+    pub image_host: Option<ImageHost>,
     pub features: Vec<String>,
 }
 
@@ -214,6 +217,7 @@ impl Default for Config {
             voice: VoiceConfig::default(),
             knowledge: Vec::new(),
             publish: Vec::new(),
+            image_host: None,
             features: vec!["sandbox".into(), "ai".into(), "git".into(), "search".into()],
         }
     }

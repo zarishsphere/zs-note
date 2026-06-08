@@ -52,7 +52,14 @@ pub fn run() {
             commands::editor::duplicate_file,
             commands::editor::get_tags,
             commands::editor::get_recent_files,
+            commands::editor::write_file,
+            commands::editor::get_temp_dir,
             commands::search::search_files,
+            commands::search::set_embeddings_enabled,
+            commands::search::set_embedding_model,
+            commands::search::get_embedding_config,
+            commands::search::vector_search,
+            commands::search::hybrid_search,
             commands::git::git_commit,
             commands::git::git_history,
             commands::git::git_diff,
@@ -77,6 +84,35 @@ pub fn run() {
             commands::credentials::get_api_key,
             commands::credentials::delete_api_key,
             commands::credentials::list_api_keys,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_start_recording,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_is_recording,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_stop_recording,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_transcribe_file,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_list_devices,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_get_audio_info,
+            #[cfg(feature = "voice")]
+            commands::voice::voice_process_command,
+            commands::plugins::plugin_install,
+            commands::plugins::plugin_uninstall,
+            commands::plugins::plugin_list,
+            commands::plugins::plugin_toggle,
+            commands::plugins::plugin_get_info,
+            commands::plugins::marketplace_fetch,
+            commands::plugins::marketplace_install,
+            commands::plugins::marketplace_check_updates,
+            commands::plugins::marketplace_uninstall,
+            commands::publish::publish_now,
+            commands::publish::publish_preview,
+            commands::publish::upload_image,
+            commands::publish::generate_rss,
+            commands::publish::list_publications,
+            commands::image_gen::generate_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ZarishNote");

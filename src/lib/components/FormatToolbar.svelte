@@ -1,4 +1,6 @@
 <script lang="ts">
+  import VoiceRecorder from './VoiceRecorder.svelte';
+
   interface FormatAction {
     label: string;
     icon: string;
@@ -10,9 +12,11 @@
   let {
     onFormat = (_action: string) => {},
     activeFormats = new Set<string>(),
+    onTranscript = (_text: string) => {},
   }: {
     onFormat?: (action: string) => void;
     activeFormats?: Set<string>;
+    onTranscript?: (text: string) => void;
   } = $props();
 
   const actions: FormatAction[] = [
@@ -56,6 +60,10 @@
       <div class="separator" />
     {/if}
   {/each}
+
+  <div class="spacer" />
+
+  <VoiceRecorder onTranscript={(text) => onTranscript(text)} />
 </div>
 
 <style>
@@ -98,5 +106,9 @@
     background: var(--color-border);
     margin: 0 4px;
     flex-shrink: 0;
+  }
+  .spacer {
+    flex: 1;
+    min-width: 4px;
   }
 </style>

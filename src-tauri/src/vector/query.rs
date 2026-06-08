@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::types::SearchResult;
-use crate::vector::VectorStore;
+use crate::vector::{DocumentIndex, IndexChunk, VectorStore};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryOptions {
@@ -13,6 +13,8 @@ pub struct QueryOptions {
     pub include_full_content: bool,
     pub kb_filter: Option<Vec<String>>,
     pub path_filter: Option<Vec<String>>,
+    /// Whether to use embedding-based search (if available).
+    pub use_embeddings: bool,
 }
 
 impl Default for QueryOptions {
@@ -24,6 +26,7 @@ impl Default for QueryOptions {
             include_full_content: false,
             kb_filter: None,
             path_filter: None,
+            use_embeddings: false,
         }
     }
 }
@@ -39,7 +42,12 @@ impl VectorStore {
     pub fn search(&self, query: &str, options: QueryOptions) -> QueryResult {
         let start = std::time::Instant::now();
 
-        let mut results = self.query(query, "default", options.top_k);
+        // Choose search strategy based on embedding availability and options
+        let mut results = if options.use_embeddings && self.is_embeddings_enabled() {
+            self.query_with_embeddings(query, "default", options.top_k, options.min_score)
+        } else {
+            self.query(query, "default", options.top_k)
+        };
 
         if options.min_score > 0.0 {
             results.retain(|r| r.score >= options.min_score);
@@ -88,21 +96,26 @@ impl VectorStore {
         output
     }
 
+    /// Perform a hybrid search that combines keyword and embedding-based scores.
     pub fn hybrid_search(
         &self,
         query: &str,
         keyword_weight: f64,
-        _semantic_weight: f64,
+        semantic_weight: f64,
         top_k: usize,
     ) -> Vec<SearchResult> {
-        let semantic_results = self.query(query, "default", top_k * 2);
+        let semantic_results = if self.is_embeddings_enabled() {
+            self.query_with_embeddings(query, "default", top_k * 2, 0.0)
+        } else {
+            self.query(query, "default", top_k * 2)
+        };
 
         let keyword_results = self.keyword_search(query, top_k * 2);
         let mut combined: HashMap<String, (SearchResult, f64)> = HashMap::new();
 
         for (i, result) in semantic_results.iter().enumerate() {
             let key = result.path.to_string_lossy().to_string();
-            let score = result.score * (1.0 - keyword_weight) * (1.0 / (i as f64 + 1.0));
+            let score = result.score * semantic_weight * (1.0 / (i as f64 + 1.0));
             combined
                 .entry(key)
                 .or_insert_with(|| (result.clone(), 0.0))
@@ -181,6 +194,54 @@ impl VectorStore {
 
         scored.sort_by(|a, b| b.1.cmp(&a.1));
         scored.into_iter().take(top_k).map(|(r, _)| r).collect()
+    }
+
+    /// Semantic search using only embedding similarity.
+    /// Returns results ranked by cosine similarity.
+    pub fn semantic_search(&self, query: &str, top_k: usize) -> Vec<SearchResult> {
+        if !self.is_embeddings_enabled() {
+            return self.query(query, "default", top_k);
+        }
+
+        let query_embedding = match self.generate_embedding(query) {
+            Ok(e) => e,
+            Err(_) => return self.query(query, "default", top_k),
+        };
+
+        let index = self.index.read();
+        let mut scored: Vec<(f64, &DocumentIndex, &IndexChunk)> = Vec::new();
+
+        for (_, doc) in index.iter() {
+            for chunk in &doc.chunks {
+                let score = chunk
+                    .embedding
+                    .as_ref()
+                    .map(|emb| crate::vector::cosine_similarity(&query_embedding, emb))
+                    .unwrap_or(0.0);
+
+                if score > 0.0 {
+                    scored.push((score, doc, chunk));
+                }
+            }
+        }
+
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+
+        scored
+            .into_iter()
+            .take(top_k)
+            .map(|(score, doc, chunk)| SearchResult {
+                path: doc.path.clone(),
+                title: doc
+                    .path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("")
+                    .to_string(),
+                snippet: crate::vector::truncate_snippet(&chunk.content, 200),
+                score: (score * 1000.0).round() / 1000.0,
+            })
+            .collect()
     }
 }
 

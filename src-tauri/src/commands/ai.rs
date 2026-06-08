@@ -47,6 +47,9 @@ pub async fn ai_chat(
     messages: Vec<ChatMessage>,
     provider: Provider,
     model: String,
+    temperature: Option<f32>,
+    max_tokens: Option<u32>,
+    top_p: Option<f32>,
 ) -> Result<(), String> {
     let config = state.config.read().await;
     let provider_impl = get_provider(&provider, &config);
@@ -56,8 +59,9 @@ pub async fn ai_chat(
         messages,
         model,
         provider: provider.clone(),
-        temperature: None,
-        max_tokens: None,
+        temperature,
+        max_tokens,
+        top_p,
         stream: true,
     };
 

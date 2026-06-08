@@ -101,14 +101,50 @@ export interface VaultConfig {
 export interface PublishTarget {
   id: string;
   name: string;
-  type: 'github' | 'gitlab' | 's3' | 'r2' | 'custom';
+  type: 'github' | 'gitlab' | 's3' | 'r2' | 'custom' | 'custom_api' | 'rss';
   url?: string;
   branch?: string;
   remoteName?: string;
+  endpoint?: string;
+  keyId?: string;
   uploadImages: boolean;
   convertWikilinks: boolean;
   stripPrivate: boolean;
   generateRss: boolean;
+}
+
+export interface HeaderPair {
+  key: string;
+  value: string;
+}
+
+export interface PublishOptions {
+  uploadImages: boolean;
+  convertWikilinks: boolean;
+  stripPrivate: boolean;
+  generateRss: boolean;
+  customEndpoint?: string;
+  customHeaders?: HeaderPair[];
+}
+
+export interface PublicationRecord {
+  id: string;
+  targetName: string;
+  filePath: string;
+  publishedAt: string;
+  status: string;
+  url?: string;
+}
+
+export type ImageHostType = 'github' | 'cloudflare';
+
+export interface ImageHost {
+  type: ImageHostType;
+  repo?: string;
+  branch?: string;
+  token?: string;
+  accountId?: string;
+  apiToken?: string;
 }
 
 export interface SyncConfig {
@@ -248,4 +284,53 @@ export interface IndexStats {
   lastIndexed?: string;
   indexSizeBytes: number;
   status: 'idle' | 'indexing' | 'ready' | 'error';
+}
+
+export interface PluginInfo {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  enabled: boolean;
+  wasm_path: string;
+  permissions: string[];
+  homepage: string | null;
+  source: string | null;
+}
+
+export interface MarketplaceServerInfo {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  downloads: number;
+  rating: number | null;
+  transport: string;
+  homepage: string | null;
+  license: string | null;
+}
+
+export interface RagConfig {
+  embedding_model: string;
+  chunk_strategy: 'fixed' | 'paragraph' | 'semantic';
+  chunk_size: number;
+  chunk_overlap: number;
+  min_score: number;
+}
+
+export interface IngestProgress {
+  fileName: string;
+  percent: number;
+  status: 'pending' | 'ingesting' | 'indexing' | 'done' | 'error';
+  error?: string;
+}
+
+export interface McpConfirmationRequest {
+  server: string;
+  tool: string;
+  args: Record<string, unknown>;
+  id: string;
+  sensitiveOps: string[];
 }

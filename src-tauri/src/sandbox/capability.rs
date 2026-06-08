@@ -100,15 +100,15 @@ pub fn resolve_virtual_path(requested: &Path, vault_root: &Path) -> Result<PathB
     let cleaned = requested_str.trim_start_matches('/');
     let resolved = vault_root.join(cleaned);
 
-    let canonical = resolved
-        .canonicalize()
-        .with_context(|| format!("Path does not exist or is inaccessible: {:?}", resolved))?;
-
     let vault_canonical = vault_root
         .canonicalize()
         .context("Vault root does not exist")?;
 
-    if !canonical.starts_with(&vault_canonical) {
+    let normalized = resolved
+        .canonicalize()
+        .unwrap_or_else(|_| normalize_path(&resolved));
+
+    if !normalized.starts_with(&vault_canonical) {
         bail!(
             "Path traversal detected: {:?} resolves outside vault {:?}",
             requested,
@@ -116,7 +116,28 @@ pub fn resolve_virtual_path(requested: &Path, vault_root: &Path) -> Result<PathB
         );
     }
 
-    Ok(canonical)
+    Ok(normalized)
+}
+
+fn normalize_path(path: &Path) -> PathBuf {
+    use std::path::Component;
+    let mut components = Vec::new();
+    for component in path.components() {
+        match component {
+            Component::ParentDir => {
+                components.pop();
+            }
+            Component::Normal(_) | Component::RootDir | Component::Prefix(_) => {
+                components.push(component.as_os_str());
+            }
+            _ => {}
+        }
+    }
+    if components.is_empty() {
+        path.to_path_buf()
+    } else {
+        components.iter().collect()
+    }
 }
 
 pub fn glob_match(pattern: &str, host: &str) -> bool {
