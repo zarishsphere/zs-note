@@ -62,8 +62,9 @@ pub fn execute_wasm(
         .get_func(&mut store, func_name)
         .ok_or_else(|| SandboxError::Other(format!("Function '{}' not found", func_name)))?;
 
-    let params: Vec<wasmtime::Val> = vec![wasmtime::Val::I64(args.len() as i64)];
-    let mut results = vec![wasmtime::Val::I64(0)];
+    let params: Vec<wasmtime::component::Val> =
+        vec![wasmtime::component::Val::I64(args.len() as i64)];
+    let mut results = vec![wasmtime::component::Val::I64(0)];
 
     func.call(&mut store, params.as_slice(), &mut results)
         .map_err(|e| {
@@ -78,9 +79,9 @@ pub fn execute_wasm(
         })?;
 
     let result = match results.get(0) {
-        Some(wasmtime::Val::I64(val)) => val.to_string(),
-        Some(wasmtime::Val::I32(val)) => val.to_string(),
-        Some(wasmtime::Val::ExternRef(Some(r))) => format!("{:?}", r.data(&store)),
+        Some(wasmtime::component::Val::I64(val)) => val.to_string(),
+        Some(wasmtime::component::Val::I32(val)) => val.to_string(),
+        Some(wasmtime::component::Val::ExternRef(Some(r))) => format!("{:?}", r.data(&store)),
         _ => "0".to_string(),
     };
 
