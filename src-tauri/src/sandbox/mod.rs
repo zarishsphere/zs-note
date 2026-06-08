@@ -75,7 +75,7 @@ impl SandboxEngine {
             .build();
 
         let mut store = Store::new(&self.engine, wasi);
-        store.set_epoch_deadline(tool.timeout as u64);
+        store.set_epoch_deadline(tool.timeout);
         store.set_fuel(tool.memory_limit as u64)?;
 
         let instance = wasmtime::Instance::new(&mut store, &module, &[])?;

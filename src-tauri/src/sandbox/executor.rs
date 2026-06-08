@@ -78,7 +78,7 @@ pub fn execute_wasm(
             }
         })?;
 
-    let result = match results.get(0) {
+    let result = match results.first() {
         Some(wasmtime::component::Val::S64(val)) => val.to_string(),
         Some(wasmtime::component::Val::S32(val)) => val.to_string(),
         _ => "0".to_string(),
