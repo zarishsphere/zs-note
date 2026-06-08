@@ -3,6 +3,7 @@
 > **A free, open-source, ultra-lightweight WYSIWYG Markdown editor with a sandboxed private AI assistant.**
 
 [![GitHub](https://img.shields.io/badge/zarishsphere/zs--note-181717?logo=github)](https://github.com/zarishsphere/zs-note)
+[![CI](https://github.com/zarishsphere/zs-note/actions/workflows/ci.yml/badge.svg)](https://github.com/zarishsphere/zs-note/actions/workflows/ci.yml)
 
 ZarishNote is a desktop note-taking application that combines a rich Markdown editor (Milkdown/ProseMirror) with a sandboxed Wasmtime-based AI assistant — all running locally on your machine.
 
@@ -48,6 +49,8 @@ pnpm install
 pnpm tauri dev
 ```
 
+> **Status:** CI pipeline is fully green — `cargo fmt`, `cargo clippy`, `cargo test`, `pnpm typecheck`, and `ruff` all pass. The project compiles and tests pass on all three platforms (ubuntu-latest, macos-latest, windows-latest).
+>
 > **Note:** The project is in early development. Not all features are functional yet. See the [blueprint repo](https://github.com/zarishsphere/zarishnote-blueprint) for the overall roadmap.
 
 ---
@@ -103,6 +106,18 @@ zs-note/
 ```
 
 ---
+
+## Build Status
+
+All CI checks pass on `main`:
+
+| Check | Status |
+|---|---|
+| Format (`cargo fmt --check`) | ✅ Passes |
+| Lint (`cargo clippy`) | ✅ Passes (warnings allowed) |
+| Tests (`cargo test`) | ✅ 8/8 pass |
+| TypeScript (`pnpm typecheck`) | ✅ Passes |
+| Python lint (ruff) | ✅ Passes |
 
 ## Features (Planned / In Progress)
 
