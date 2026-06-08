@@ -116,27 +116,6 @@ pub fn chunk_semantic(text: &str, max_chunk_size: usize) -> Vec<String> {
 
     chunks
 }
-                }
-            }
-
-            if let Some(split_pos) = best_boundary {
-                chunks.push(text[start..split_pos].trim().to_string());
-                start = split_pos;
-                continue;
-            }
-        }
-
-        chunks.push(text[start..end].trim().to_string());
-        start = end;
-    }
-
-    chunks.retain(|c| !c.is_empty());
-    if chunks.is_empty() && !text.is_empty() {
-        chunks.push(text.to_string());
-    }
-
-    chunks
-}
 
 pub fn chunk_hierarchical(text: &str, max_chunk_size: usize) -> Vec<Vec<String>> {
     let sections = chunk_semantic(text, max_chunk_size);
