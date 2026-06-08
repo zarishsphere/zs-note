@@ -29,7 +29,7 @@ impl GitEngine {
             diff_opts.pathspec(relative);
 
             let diff =
-                repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&diff_opts))?;
+                repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&mut diff_opts))?;
 
             if diff.deltas().len() > 0 {
                 let time = commit.time();

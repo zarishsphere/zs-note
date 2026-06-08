@@ -69,7 +69,7 @@ impl SandboxEngine {
 
         let module = Module::new(&self.engine, &wasm_bytes)?;
 
-        let mut wasi = WasiCtxBuilder::new()
+        let wasi = WasiCtxBuilder::new()
             .inherit_stdout()
             .inherit_stderr()
             .build();

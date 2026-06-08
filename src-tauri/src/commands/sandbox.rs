@@ -52,5 +52,6 @@ pub fn sandbox_test_tool(state: State<'_, AppState>, tool_name: String) -> Resul
 
     sandbox
         .test_module(&wasm_bytes)
+        .map(|_| true)
         .map_err(|e| format!("Tool test failed: {}", e))
 }

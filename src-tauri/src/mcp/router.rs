@@ -33,11 +33,11 @@ impl McpToolRouter {
     }
 
     pub fn register_route(&mut self, route_key: &str, config: RouteConfig) {
-        self.routes.insert(route_key.to_string(), config);
         info!(
             "Registered MCP route: {} -> {}/{}",
             route_key, config.server_name, config.tool_name
         );
+        self.routes.insert(route_key.to_string(), config);
     }
 
     pub fn add_confirmation_rule(&mut self, rule: ConfirmationRule) {
@@ -91,7 +91,7 @@ impl McpToolRouter {
             .any(|s| tool.to_lowercase().contains(s))
     }
 
-    pub fn format_tool_result(&self, result: Value, tool_name: &str) -> Result<String> {
+    pub fn format_tool_result(&self, result: Value, _tool_name: &str) -> Result<String> {
         if result.is_null() {
             return Ok("(no output)".to_string());
         }

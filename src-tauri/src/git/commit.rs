@@ -134,7 +134,7 @@ pub fn generate_commit_message(paths: &[&Path], style: &str) -> String {
 
             format!(
                 "{}({}): update {}",
-                types.first().unwrap_or(&"chore"),
+                types.first().map(|s| s.as_str()).unwrap_or("chore"),
                 scope,
                 descriptions.join(", ")
             )

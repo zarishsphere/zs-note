@@ -6,6 +6,7 @@ use tauri::State;
 pub fn git_commit(state: State<'_, AppState>, path: String) -> Result<(), String> {
     let mut git = state.git.blocking_write();
     git.commit_all(&format!("Update {}", path))
+        .map(|_| ())
         .map_err(|e| format!("Git commit failed: {}", e))
 }
 
@@ -33,7 +34,7 @@ pub fn git_diff(
     let mut current_hunk_lines = Vec::new();
 
     for line in &lines {
-        if let Some(hdr) = line.strip_prefix("@@ ") {
+        if let Some(_hdr) = line.strip_prefix("@@ ") {
             if !current_hunk_lines.is_empty() {
                 hunks.push(DiffHunk {
                     old_start: 0,

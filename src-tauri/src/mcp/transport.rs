@@ -78,12 +78,12 @@ impl StdioTransport {
 
 #[async_trait]
 impl McpTransport for StdioTransport {
-    async fn send_request(&self, method: &str, params: Value) -> Result<Value> {
+    async fn send_request(&self, _method: &str, params: Value) -> Result<Value> {
         let id = self.next_id().await;
         let request = JsonRpcRequest {
             jsonrpc: "2.0".into(),
             id: id as i64,
-            method: method.to_string(),
+            method: _method.to_string(),
             params: Some(params),
         };
 
@@ -98,6 +98,7 @@ impl McpTransport for StdioTransport {
             JsonRpcMessage::Error { error, .. } => {
                 bail!("MCP error {}: {}", error.code, error.message)
             }
+            _ => bail!("Unexpected JSON-RPC message type"),
         }
     }
 

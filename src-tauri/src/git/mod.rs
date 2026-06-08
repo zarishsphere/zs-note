@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, bail};
 use chrono::{TimeZone, Utc};
 use git2::{DiffOptions, Oid, Repository, Signature, StatusOptions};
-use serde::{Deserialize, Serialize};
+
 
 use crate::types::{CommitEntry, GitStatus};
 
@@ -42,6 +42,7 @@ impl GitEngine {
             &[],
         )?;
         tracing::info!("Initialized git vault at {:?}", path);
+        drop(tree);
         Ok(repo)
     }
 
@@ -126,10 +127,11 @@ impl GitEngine {
 
             if !path.is_empty() {
                 let tree = commit.tree()?;
-                let diff_opts = DiffOptions::new().pathspec(path);
-                let parent_tree = commit.parent(0).ok().map(|p| p.tree().ok()).flatten();
+                let mut diff_opts = DiffOptions::new();
+                diff_opts.pathspec(path);
+                let parent_tree = commit.parent(0).ok().and_then(|p| p.tree().ok());
                 let diff =
-                    repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&diff_opts))?;
+                    repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&mut diff_opts))?;
 
                 if diff.deltas().len() == 0 {
                     continue;
@@ -164,7 +166,7 @@ impl GitEngine {
         let mut diff_opts = DiffOptions::new();
         diff_opts.pathspec(path);
 
-        let diff = repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&diff_opts))?;
+        let diff = repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&mut diff_opts))?;
 
         let mut output = String::new();
         diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
@@ -202,28 +204,29 @@ impl GitEngine {
         let behind = 0;
 
         if let Ok(head) = repo.head() {
-            if let Ok(upstream) = head.upstream() {
-                let head_oid = head.peel_to_commit().map(|c| c.id()).unwrap_or(Oid::zero());
-                let upstream_oid = upstream
-                    .peel_to_commit()
-                    .map(|c| c.id())
-                    .unwrap_or(Oid::zero());
+            let head_oid = head.peel_to_commit().map(|c| c.id()).unwrap_or(Oid::zero());
+            if let Some(branch_name) = head.shorthand() {
+                if let Ok(branch) = repo.find_branch(branch_name, git2::BranchType::Local) {
+                    if let Ok(upstream) = branch.upstream() {
+                        let upstream_oid = upstream.get().peel_to_commit().map(|c| c.id()).unwrap_or(Oid::zero());
 
-                let mut revwalk = repo.revwalk()?;
-                revwalk.push(upstream_oid)?;
-                revwalk.hide(head_oid)?;
-                let behind_count = revwalk.count();
+                        let mut revwalk = repo.revwalk()?;
+                        revwalk.push(upstream_oid)?;
+                        revwalk.hide(head_oid)?;
+                        let behind_count = revwalk.count();
 
-                let mut revwalk = repo.revwalk()?;
-                revwalk.push(head_oid)?;
-                revwalk.hide(upstream_oid)?;
-                let ahead_count = revwalk.count();
+                        let mut revwalk = repo.revwalk()?;
+                        revwalk.push(head_oid)?;
+                        revwalk.hide(upstream_oid)?;
+                        let ahead_count = revwalk.count();
 
-                return Ok(GitStatus {
-                    ahead: ahead_count,
-                    behind: behind_count,
-                    unstaged,
-                });
+                        return Ok(GitStatus {
+                            ahead: ahead_count,
+                            behind: behind_count,
+                            unstaged,
+                        });
+                    }
+                }
             }
         }
 
@@ -252,9 +255,14 @@ impl GitEngine {
         });
         callbacks.push_update_reference(|refname, status| {
             if let Some(msg) = status {
-                anyhow::bail!("Push failed for {}: {}", refname, msg);
+                Err(git2::Error::new(
+                    git2::ErrorCode::GenericError,
+                    git2::ErrorClass::Net,
+                    &format!("Push failed for {}: {}", refname, msg),
+                ))
+            } else {
+                Ok(())
             }
-            Ok(())
         });
 
         let mut push_opts = git2::PushOptions::new();

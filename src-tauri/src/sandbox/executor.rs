@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use anyhow::{Context, Result};
-use wasmtime::component::Table;
 use wasmtime::{Engine, Linker, Module, Store};
+use wasmtime::component::ResourceTable;
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
 use crate::sandbox::SandboxError;
@@ -10,7 +10,7 @@ use crate::types::ToolConfig;
 
 struct SandboxWasi {
     ctx: WasiCtx,
-    table: Table,
+    table: ResourceTable,
     output: Vec<u8>,
 }
 
@@ -19,7 +19,7 @@ impl WasiView for SandboxWasi {
         &mut self.ctx
     }
 
-    fn table(&mut self) -> &mut Table {
+    fn table(&mut self) -> &mut ResourceTable {
         &mut self.table
     }
 }
@@ -42,7 +42,7 @@ pub fn execute_wasm(
             .inherit_stdin()
             .args(&["wasm-module", func_name, args])
             .build(),
-        table: Table::default(),
+        table: ResourceTable::default(),
         output: Vec::new(),
     };
 
@@ -50,8 +50,8 @@ pub fn execute_wasm(
     store.set_epoch_deadline(config.timeout);
     store.set_fuel(config.memory_limit as u64)?;
 
-    let linker = Linker::new(engine);
-    wasmtime_wasi::add_to_linker_sync(&linker, |s: &mut SandboxWasi| &mut s.ctx)
+    let mut linker = Linker::new(engine);
+    wasmtime_wasi::add_to_linker_sync(&mut linker)
         .context("Failed to add WASI to linker")?;
 
     let instance = linker
@@ -79,7 +79,7 @@ pub fn execute_wasm(
     let result = match results.get(0) {
         Some(wasmtime::Val::I64(val)) => val.to_string(),
         Some(wasmtime::Val::I32(val)) => val.to_string(),
-        Some(wasmtime::Val::ExternRef(Some(r))) => format!("{:?}", r.data()),
+        Some(wasmtime::Val::ExternRef(Some(r))) => format!("{:?}", r.data(&store)),
         _ => "0".to_string(),
     };
 

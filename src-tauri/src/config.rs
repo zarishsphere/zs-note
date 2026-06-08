@@ -293,7 +293,7 @@ impl Config {
         path: PathBuf,
         config: Arc<RwLock<Config>>,
     ) -> Result<RecommendedWatcher> {
-        let config_path = path.join(".znrc");
+        let _config_path = path.join(".znrc");
         let mut watcher = RecommendedWatcher::new(
             move |res: Result<Event, notify::Error>| {
                 if let Ok(event) = res {

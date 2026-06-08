@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use tracing_appender::rolling;
 use tracing_subscriber::fmt::format::FmtSpan;
-use tracing_subscriber::prelude::*;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SandboxAuditEntry {
