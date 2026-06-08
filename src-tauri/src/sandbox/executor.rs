@@ -1,8 +1,7 @@
 use std::time::Instant;
 
 use anyhow::{Context, Result};
-use wasmtime::component::ResourceTable;
-use wasmtime::component::Linker;
+use wasmtime::component::{Linker, ResourceTable};
 use wasmtime::{Engine, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
