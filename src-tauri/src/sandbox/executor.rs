@@ -1,8 +1,9 @@
 use std::time::Instant;
 
 use anyhow::{Context, Result};
+use wasmtime::component::Component;
 use wasmtime::component::{Linker, ResourceTable};
-use wasmtime::{Engine, Module, Store};
+use wasmtime::{Engine, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
 use crate::sandbox::SandboxError;
@@ -33,7 +34,7 @@ pub fn execute_wasm(
 ) -> Result<String, SandboxError> {
     let start = Instant::now();
 
-    let module = Module::new(engine, wasm_bytes)?;
+    let component = Component::new(engine, wasm_bytes)?;
 
     let mut wasi_ctx = SandboxWasi {
         ctx: WasiCtxBuilder::new()
@@ -54,7 +55,7 @@ pub fn execute_wasm(
     wasmtime_wasi::add_to_linker_sync(&mut linker).context("Failed to add WASI to linker")?;
 
     let instance = linker
-        .instantiate(&mut store, &module)
+        .instantiate(&mut store, &component)
         .map_err(|e| SandboxError::Other(format!("Instantiation failed: {}", e)))?;
 
     let func = instance
@@ -64,16 +65,17 @@ pub fn execute_wasm(
     let params: Vec<wasmtime::Val> = vec![wasmtime::Val::I64(args.len() as i64)];
     let mut results = vec![wasmtime::Val::I64(0)];
 
-    func.call(&mut store, &params, &mut results).map_err(|e| {
-        let elapsed = start.elapsed().as_millis() as u64;
-        if elapsed >= config.timeout {
-            SandboxError::Timeout {
-                timeout: config.timeout,
+    func.call(&mut store, params.as_slice(), &mut results)
+        .map_err(|e| {
+            let elapsed = start.elapsed().as_millis() as u64;
+            if elapsed >= config.timeout {
+                SandboxError::Timeout {
+                    timeout: config.timeout,
+                }
+            } else {
+                SandboxError::Other(format!("Execution failed: {}", e))
             }
-        } else {
-            SandboxError::Other(format!("Execution failed: {}", e))
-        }
-    })?;
+        })?;
 
     let result = match results.get(0) {
         Some(wasmtime::Val::I64(val)) => val.to_string(),
