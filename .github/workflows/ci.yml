@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: crate-ci/typos@1a147222170e0f3959b904705f1f7f52187599d5 # v1.30.3
+      - uses: crate-ci/typos@d08e4083f112e684fb88f6babd9ae60a1f1cd84f # v1.30.3
 
   rust:
     name: Rust — lint + test
@@ -36,7 +36,7 @@ jobs:
         with:
           toolchain: stable
           components: clippy, rustfmt
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: src-tauri
           key: ${{ runner.os }}-rust-${{ hashFiles('src-tauri/Cargo.lock') }}
@@ -62,7 +62,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
