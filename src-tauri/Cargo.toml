@@ -46,7 +46,7 @@ notify = "7"
 parking_lot = "0.12"
 tracing-appender = "0.2"
 base64 = "0.22"
-keyring = "3"
+keyring = "4"
 
 [features]
 default = ["custom-protocol"]
