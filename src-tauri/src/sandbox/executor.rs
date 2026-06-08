@@ -2,7 +2,8 @@ use std::time::Instant;
 
 use anyhow::{Context, Result};
 use wasmtime::component::ResourceTable;
-use wasmtime::{Engine, Linker, Module, Store};
+use wasmtime::component::Linker;
+use wasmtime::{Engine, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiView};
 
 use crate::sandbox::SandboxError;
