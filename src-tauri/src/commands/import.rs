@@ -20,8 +20,8 @@ pub fn import_image(
 ) -> Result<String, String> {
     let assets_dir = ensure_assets_dir(&state.vault_path)?;
 
-    let sanitized_name = file_name
-        .replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', ' '], "_");
+    let sanitized_name =
+        file_name.replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', ' '], "_");
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -79,10 +79,7 @@ pub fn import_files(
         let dest = dest_dir.join(&file_name);
 
         if dest.exists() {
-            let stem = src
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("file");
+            let stem = src.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
             let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("");
             let timestamp = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
