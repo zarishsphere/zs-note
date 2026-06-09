@@ -42,7 +42,9 @@ pub struct RecentFile {
 pub struct ChatMessage {
     pub role: ChatRole,
     pub content: String,
+    #[serde(default = "chrono::Utc::now")]
     pub timestamp: chrono::DateTime<chrono::Utc>,
+    #[serde(default)]
     pub model: Option<String>,
 }
 
@@ -73,24 +75,27 @@ impl std::fmt::Display for ChatRole {
 pub enum Provider {
     #[serde(rename = "openai")]
     OpenAI,
-    #[serde(rename = "claude")]
-    Claude,
-    #[serde(rename = "gemini")]
-    Gemini,
+    #[serde(rename = "anthropic", alias = "claude")]
+    Anthropic,
+    #[serde(rename = "google", alias = "gemini")]
+    Google,
     #[serde(rename = "deepseek")]
     DeepSeek,
     #[serde(rename = "ollama")]
     Ollama,
+    #[serde(rename = "custom")]
+    Custom,
 }
 
 impl std::fmt::Display for Provider {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Provider::OpenAI => write!(f, "openai"),
-            Provider::Claude => write!(f, "claude"),
-            Provider::Gemini => write!(f, "gemini"),
+            Provider::Anthropic => write!(f, "anthropic"),
+            Provider::Google => write!(f, "google"),
             Provider::DeepSeek => write!(f, "deepseek"),
             Provider::Ollama => write!(f, "ollama"),
+            Provider::Custom => write!(f, "custom"),
         }
     }
 }
@@ -100,11 +105,42 @@ impl std::str::FromStr for Provider {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "openai" => Ok(Provider::OpenAI),
-            "claude" => Ok(Provider::Claude),
-            "gemini" => Ok(Provider::Gemini),
+            "anthropic" | "claude" => Ok(Provider::Anthropic),
+            "google" | "gemini" => Ok(Provider::Google),
             "deepseek" => Ok(Provider::DeepSeek),
             "ollama" => Ok(Provider::Ollama),
+            "custom" => Ok(Provider::Custom),
             _ => Err(format!("Unknown provider: {}", s)),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderConfig {
+    pub id: String,
+    pub name: String,
+    pub provider_type: Provider,
+    pub api_key: Option<String>,
+    pub base_url: Option<String>,
+    pub models: Vec<String>,
+    pub default_model: String,
+    pub enabled: bool,
+    pub temperature: Option<f32>,
+    pub max_tokens: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ProviderInput {
+    Id(String),
+    Config(ProviderConfig),
+}
+
+impl ProviderInput {
+    pub fn id(&self) -> &str {
+        match self {
+            ProviderInput::Id(id) => id,
+            ProviderInput::Config(config) => &config.id,
         }
     }
 }

@@ -124,6 +124,9 @@
     } else if (e.type === 'file:rename') {
       files.renameFile(detail.oldPath, detail.newPath);
       announce(`Renamed to ${detail.newPath}`, 'polite');
+    } else if (e.type === 'file:move') {
+      files.moveFile(detail.oldPath, detail.newPath);
+      announce(`Moved to ${detail.newPath}`, 'polite');
     } else if (e.type === 'file:duplicate') {
       files.duplicateFile(detail.path);
       announce(`Duplicated ${detail.path}`, 'polite');
@@ -131,7 +134,7 @@
   }
 
   onMount(() => {
-    const handlers = ['file:create', 'file:create-folder', 'file:delete', 'file:rename', 'file:duplicate'];
+    const handlers = ['file:create', 'file:create-folder', 'file:delete', 'file:rename', 'file:move', 'file:duplicate'];
     for (const evt of handlers) {
       window.addEventListener(evt, handleFileEvents as EventListener);
     }
