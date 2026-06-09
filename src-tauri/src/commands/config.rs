@@ -48,3 +48,26 @@ pub fn reload_config(state: State<'_, AppState>) -> Result<Config, String> {
 
     Ok(loaded)
 }
+
+#[tauri::command]
+pub fn get_providers(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::types::ProviderConfig>, String> {
+    let config = state.config.blocking_read();
+    Ok(config.ai.providers.clone())
+}
+
+#[tauri::command]
+pub fn save_providers(
+    state: State<'_, AppState>,
+    providers: Vec<crate::types::ProviderConfig>,
+) -> Result<(), String> {
+    let mut config = state.config.blocking_write();
+    config.ai.providers = providers;
+
+    config
+        .save(&state.vault_path)
+        .map_err(|e| format!("Failed to save providers: {}", e))?;
+
+    Ok(())
+}

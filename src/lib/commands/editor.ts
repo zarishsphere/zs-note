@@ -25,6 +25,10 @@ export async function renameFile(oldPath: string, newPath: string): Promise<void
   return invoke('rename_file', { oldPath, newPath });
 }
 
+export async function moveFile(oldPath: string, newPath: string): Promise<void> {
+  return invoke('move_file', { oldPath, newPath });
+}
+
 export async function deleteFile(path: string): Promise<void> {
   return invoke('delete_file', { path });
 }
@@ -34,7 +38,7 @@ export async function duplicateFile(path: string): Promise<void> {
 }
 
 export async function getTags(): Promise<string[]> {
-  return invoke('get_tags');
+  return invoke<string[]>('get_tags');
 }
 
 export async function getRecentFiles(): Promise<RecentFile[]> {

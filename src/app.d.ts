@@ -26,6 +26,7 @@ interface EditorCommands {
   create_file(path: string): Promise<void>;
   create_folder(path: string): Promise<void>;
   rename_file(old_path: string, new_path: string): Promise<void>;
+  move_file(old_path: string, new_path: string): Promise<void>;
   delete_file(path: string): Promise<void>;
   duplicate_file(path: string): Promise<void>;
   get_tags(): Promise<string[]>;
@@ -41,9 +42,7 @@ interface EditorCommands {
     variables: Record<string, string>,
   ): Promise<string>;
   ai_list_models(provider: string): Promise<string[]>;
-  test_provider_connection(
-    provider: import('./lib/types').ProviderConfig,
-  ): Promise<boolean>;
+  test_provider_connection(provider: string): Promise<boolean>;
 
   sandbox_exec(
     wasm_path: string,
