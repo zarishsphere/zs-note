@@ -48,6 +48,7 @@ pub fn run() {
             commands::editor::create_file,
             commands::editor::create_folder,
             commands::editor::rename_file,
+            commands::editor::move_file,
             commands::editor::delete_file,
             commands::editor::duplicate_file,
             commands::editor::get_tags,

@@ -26,6 +26,7 @@ interface EditorCommands {
   create_file(path: string): Promise<void>;
   create_folder(path: string): Promise<void>;
   rename_file(old_path: string, new_path: string): Promise<void>;
+  move_file(old_path: string, new_path: string): Promise<void>;
   delete_file(path: string): Promise<void>;
   duplicate_file(path: string): Promise<void>;
   get_tags(): Promise<string[]>;

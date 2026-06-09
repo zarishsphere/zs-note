@@ -25,6 +25,10 @@ export async function renameFile(oldPath: string, newPath: string): Promise<void
   return invoke('rename_file', { oldPath, newPath });
 }
 
+export async function moveFile(oldPath: string, newPath: string): Promise<void> {
+  return invoke('move_file', { oldPath, newPath });
+}
+
 export async function deleteFile(path: string): Promise<void> {
   return invoke('delete_file', { path });
 }
