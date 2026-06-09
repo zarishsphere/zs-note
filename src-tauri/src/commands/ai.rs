@@ -50,7 +50,7 @@ pub async fn ai_chat(
     temperature: Option<f32>,
     max_tokens: Option<u32>,
     top_p: Option<f32>,
-) -> Result<(), String> {
+) -> Result<String, String> {
     let config = state.config.read().await;
     let provider_impl = get_provider(&provider, &config);
     drop(config);
@@ -70,12 +70,22 @@ pub async fn ai_chat(
         .await
         .map_err(|e| format!("Chat failed: {}", e))?;
 
+    let mut assistant_text = String::new();
+
     while let Some(event) = stream.next().await {
-        let payload = serde_json::to_value(&event).unwrap_or_default();
-        let _ = app.emit("ai:token", payload);
+        match event {
+            StreamEvent::Token { content } => {
+                if !content.is_empty() {
+                    assistant_text.push_str(&content);
+                    let _ = app.emit("ai:chunk", content);
+                }
+            }
+            StreamEvent::Done { .. } => break,
+            StreamEvent::Error { message } => return Err(message),
+        }
     }
 
-    Ok(())
+    Ok(assistant_text)
 }
 
 #[tauri::command]
