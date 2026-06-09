@@ -38,7 +38,7 @@ export async function duplicateFile(path: string): Promise<void> {
 }
 
 export async function getTags(): Promise<string[]> {
-  return invoke('get_tags');
+  return invoke<string[]>('get_tags');
 }
 
 export async function getRecentFiles(): Promise<FileEntry[]> {

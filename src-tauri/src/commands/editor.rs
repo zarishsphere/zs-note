@@ -190,7 +190,7 @@ pub fn duplicate_file(state: State<'_, AppState>, path: String) -> Result<(), St
 }
 
 #[tauri::command]
-pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String> {
+pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let vault = &state.vault_path;
     let mut tag_counts: HashMap<String, u32> = HashMap::new();
 
@@ -215,8 +215,8 @@ pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String
     }
 
     let mut tags: Vec<(String, u32)> = tag_counts.into_iter().collect();
-    tags.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(tags)
+    tags.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    Ok(tags.into_iter().map(|(tag, _)| tag).collect())
 }
 
 #[tauri::command]

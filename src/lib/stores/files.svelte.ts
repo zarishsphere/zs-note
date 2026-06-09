@@ -113,7 +113,7 @@ function countEntries(entries: FileEntry[]): number {
 
 function loadTags(): void {
   editorCommands.getTags()
-    .then((t) => { tags = t; })
+    .then((tagNames: string[]) => { tags = tagNames; })
     .catch(() => {});
 }
 
