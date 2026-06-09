@@ -32,6 +32,13 @@ pub enum FileEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecentFile {
+    pub name: String,
+    pub path: String,
+    pub modified: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub role: ChatRole,
     pub content: String,

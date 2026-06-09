@@ -172,7 +172,11 @@
             {#each files.recentFiles as file}
               <button
                 class="recent-item truncate"
-                onclick={() => editor.openFile(file.path)}
+                title={`${file.path} • ${new Date(file.modified).toLocaleString()}`}
+                onclick={() => {
+                  files.selectFile(file.path);
+                  editor.openFile(file.path);
+                }}
               >
                 {file.name}
               </button>
