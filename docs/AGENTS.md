@@ -1,7 +1,8 @@
 # ZarishNote — Agent Guide
 
-The directory (`docs/`) contains the **specification/blueprint** for the ZarishNote project.  
 The actual code repository: <https://github.com/zarishsphere/zs-note>
+The directory (`docs/`) contains the **specification/blueprint** for the ZarishNote project.  
+
 
 ## Structure
 
