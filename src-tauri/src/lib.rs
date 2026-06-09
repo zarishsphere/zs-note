@@ -48,6 +48,7 @@ pub fn run() {
             commands::editor::create_file,
             commands::editor::create_folder,
             commands::editor::rename_file,
+            commands::editor::move_file,
             commands::editor::delete_file,
             commands::editor::duplicate_file,
             commands::editor::get_tags,
@@ -112,6 +113,8 @@ pub fn run() {
             commands::publish::upload_image,
             commands::publish::generate_rss,
             commands::publish::list_publications,
+            commands::config::get_providers,
+            commands::config::save_providers,
             commands::image_gen::generate_image,
         ])
         .run(tauri::generate_context!())

@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use crate::types::{
-    EditorSettings, ImageHost, KnowledgeBase, PublishTarget, SyncConfig, ToolConfig,
-    VaultConfig,
+    EditorSettings, ImageHost, KnowledgeBase, Provider, ProviderConfig, PublishTarget, SyncConfig,
+    ToolConfig, VaultConfig,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +22,8 @@ pub struct AIConfig {
     pub base_url: Option<String>,
     pub max_tokens: u32,
     pub temperature: f32,
+    #[serde(default)]
+    pub providers: Vec<ProviderConfig>,
 }
 
 impl Default for AIConfig {
@@ -33,6 +35,18 @@ impl Default for AIConfig {
             base_url: Some("http://localhost:11434".into()),
             max_tokens: 4096,
             temperature: 0.7,
+            providers: vec![ProviderConfig {
+                id: "ollama".into(),
+                name: "Ollama".into(),
+                provider_type: Provider::Ollama,
+                api_key: None,
+                base_url: Some("http://localhost:11434".into()),
+                models: vec!["llama3.2".into()],
+                default_model: "llama3.2".into(),
+                enabled: true,
+                temperature: Some(0.7),
+                max_tokens: Some(4096),
+            }],
         }
     }
 }
@@ -269,6 +283,31 @@ impl Config {
         Ok(())
     }
 
+    fn ensure_provider_records(&mut self) {
+        if !self.ai.providers.is_empty() {
+            return;
+        }
+
+        let provider_type = self
+            .ai
+            .provider
+            .parse::<Provider>()
+            .unwrap_or(Provider::Custom);
+
+        self.ai.providers.push(ProviderConfig {
+            id: self.ai.provider.clone(),
+            name: self.ai.provider.clone(),
+            provider_type,
+            api_key: self.ai.api_key.clone(),
+            base_url: self.ai.base_url.clone(),
+            models: vec![self.ai.model.clone()],
+            default_model: self.ai.model.clone(),
+            enabled: true,
+            temperature: Some(self.ai.temperature),
+            max_tokens: Some(self.ai.max_tokens),
+        });
+    }
+
     pub fn load(path: &Path) -> Result<Self> {
         let config_path = path.join(".znrc");
         if !config_path.exists() {
@@ -277,8 +316,9 @@ impl Config {
         }
         let contents = std::fs::read_to_string(&config_path)
             .with_context(|| format!("Failed to read .znrc from {:?}", config_path))?;
-        let config: Config = serde_yaml::from_str(&contents)
+        let mut config: Config = serde_yaml::from_str(&contents)
             .with_context(|| format!("Failed to parse .znrc at {:?}", config_path))?;
+        config.ensure_provider_records();
         config.validate()?;
         tracing::info!("Loaded config from {:?}", config_path);
         Ok(config)
