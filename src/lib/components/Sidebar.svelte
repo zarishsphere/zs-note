@@ -140,9 +140,9 @@
           {#if files.tags.length === 0}
             <span class="text-muted text-sm">No tags</span>
           {:else}
-            {#each files.tags as tag}
-              <button class="tag-chip" onclick={() => files.searchFiles(tag)}>
-                <span>#{tag}</span>
+            {#each files.tags as tagName}
+              <button class="tag-chip" onclick={() => files.searchFiles(tagName)}>
+                <span>#{tagName}</span>
               </button>
             {/each}
           {/if}
@@ -172,7 +172,11 @@
             {#each files.recentFiles as file}
               <button
                 class="recent-item truncate"
-                onclick={() => editor.openFile(file.path)}
+                title={`${file.path} • ${new Date(file.modified).toLocaleString()}`}
+                onclick={() => {
+                  files.selectFile(file.path);
+                  editor.openFile(file.path);
+                }}
               >
                 {file.name}
               </button>

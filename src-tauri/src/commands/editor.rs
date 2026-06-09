@@ -4,7 +4,7 @@ use std::path::{Component, Path, PathBuf};
 use tauri::State;
 use walkdir::WalkDir;
 
-use crate::types::{AppState, FileEntry};
+use crate::types::{AppState, FileEntry, RecentFile};
 
 #[tauri::command]
 pub fn read_file(state: State<'_, AppState>, path: String) -> Result<String, String> {
@@ -115,6 +115,37 @@ pub fn rename_file(
 }
 
 #[tauri::command]
+pub fn move_file(
+    state: State<'_, AppState>,
+    old_path: String,
+    new_path: String,
+) -> Result<(), String> {
+    let old_relative = normalize_vault_relative_path(&old_path)?;
+    let new_relative = normalize_vault_relative_path(&new_path)?;
+
+    if old_relative == new_relative {
+        return Err("Cannot move a file or folder to the same path".into());
+    }
+
+    let old_full = resolve_vault_path(&state.vault_path, old_relative.to_string_lossy().as_ref())?;
+    if !old_full.exists() {
+        return Err("Source path does not exist".into());
+    }
+
+    if old_full.is_dir() && new_relative.starts_with(&old_relative) {
+        return Err("Cannot move a folder into itself or one of its descendants".into());
+    }
+
+    let new_full = resolve_vault_path(&state.vault_path, new_relative.to_string_lossy().as_ref())?;
+    if let Some(parent) = new_full.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create destination directories: {}", e))?;
+    }
+
+    std::fs::rename(&old_full, &new_full).map_err(|e| format!("Failed to move: {}", e))
+}
+
+#[tauri::command]
 pub fn delete_file(state: State<'_, AppState>, path: String) -> Result<(), String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
     if full_path.is_dir() {
@@ -159,7 +190,7 @@ pub fn duplicate_file(state: State<'_, AppState>, path: String) -> Result<(), St
 }
 
 #[tauri::command]
-pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String> {
+pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let vault = &state.vault_path;
     let mut tag_counts: HashMap<String, u32> = HashMap::new();
 
@@ -184,12 +215,12 @@ pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String
     }
 
     let mut tags: Vec<(String, u32)> = tag_counts.into_iter().collect();
-    tags.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(tags)
+    tags.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    Ok(tags.into_iter().map(|(tag, _)| tag).collect())
 }
 
 #[tauri::command]
-pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<RecentFile>, String> {
     let vault = &state.vault_path;
     let mut files: Vec<(PathBuf, std::time::SystemTime)> = Vec::new();
 
@@ -204,11 +235,24 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, Strin
     }
 
     files.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(files
+    files
         .into_iter()
         .take(20)
-        .map(|(p, _)| p.to_string_lossy().to_string())
-        .collect())
+        .map(|(path, modified)| {
+            let name = path
+                .file_name()
+                .map(|name| name.to_string_lossy().to_string())
+                .unwrap_or_else(|| path.to_string_lossy().to_string());
+            let path = vault_relative_path(vault, &path)?;
+            let modified = chrono::DateTime::<chrono::Utc>::from(modified);
+
+            Ok(RecentFile {
+                name,
+                path,
+                modified,
+            })
+        })
+        .collect()
 }
 
 /// Write raw bytes to a file (used for drag-and-drop ingestion).
@@ -235,33 +279,44 @@ pub fn get_temp_dir(state: State<'_, AppState>) -> Result<String, String> {
     Ok(temp_dir.to_string_lossy().to_string())
 }
 
-fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {
-    if has_windows_prefix(user_path) {
-        return Err("Path traversal detected".into());
+fn normalize_vault_relative_path(user_path: &str) -> Result<PathBuf, String> {
+    let raw = user_path.trim();
+    if raw.is_empty() {
+        return Err("Path is required".into());
     }
 
-    let user_path = Path::new(user_path);
-    let mut validated_relative = PathBuf::new();
+    let path = Path::new(raw);
+    if path.is_absolute() {
+        return Err("Path must be vault-relative".into());
+    }
 
-    for component in user_path.components() {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
         match component {
-            Component::Normal(component) => validated_relative.push(component),
+            Component::Normal(part) => normalized.push(part),
             Component::CurDir => {}
-            Component::ParentDir | Component::Prefix(_) | Component::RootDir => {
-                return Err("Path traversal detected".into());
+            Component::ParentDir => return Err("Path must stay inside the vault".into()),
+            Component::RootDir | Component::Prefix(_) => {
+                return Err("Path must be vault-relative".into());
             }
         }
     }
 
-    let canonical_root = vault_root
-        .canonicalize()
-        .map_err(|e| format!("Failed to resolve vault root: {}", e))?;
-    let candidate = canonical_root.join(&validated_relative);
+    if normalized.as_os_str().is_empty() {
+        return Err("Path is required".into());
+    }
 
-    if let Ok(canonical_candidate) = candidate.canonicalize() {
-        if canonical_candidate.starts_with(&canonical_root) {
-            return Ok(canonical_candidate);
-        }
+    Ok(normalized)
+}
+
+fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {
+    let vault = vault_root
+        .canonicalize()
+        .unwrap_or_else(|_| vault_root.to_path_buf());
+    let cleaned = user_path.trim_start_matches('/');
+    let candidate = vault.join(cleaned);
+    let canonical = candidate.canonicalize().unwrap_or(candidate);
+    if !canonical.starts_with(&vault) {
         return Err("Path traversal detected".into());
     }
 
