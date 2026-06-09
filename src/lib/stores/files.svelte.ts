@@ -1,4 +1,4 @@
-import type { FileEntry, SearchResult } from '../types';
+import type { FileEntry, RecentFile, SearchResult } from '../types';
 import * as editorCommands from '../commands/editor';
 
 /* ── File tree state ── */
@@ -6,7 +6,7 @@ let fileTree = $state<FileEntry[]>([]);
 let tags = $state<string[]>([]);
 let searchQuery = $state('');
 let searchResults = $state<SearchResult[]>([]);
-let recentFiles = $state<FileEntry[]>([]);
+let recentFiles = $state<RecentFile[]>([]);
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 let selectedFilePath = $state<string | null>(null);

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { FileEntry, SearchResult, Template } from '../types';
+import type { FileEntry, RecentFile, SearchResult, Template } from '../types';
 
 export async function readFile(path: string): Promise<string> {
   return invoke('read_file', { path });
@@ -37,7 +37,7 @@ export async function getTags(): Promise<string[]> {
   return invoke('get_tags');
 }
 
-export async function getRecentFiles(): Promise<FileEntry[]> {
+export async function getRecentFiles(): Promise<RecentFile[]> {
   return invoke('get_recent_files');
 }
 

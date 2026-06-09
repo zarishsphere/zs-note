@@ -20,6 +20,12 @@ export interface FileEntry {
   modified?: string;
 }
 
+export interface RecentFile {
+  name: string;
+  path: string;
+  modified: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
