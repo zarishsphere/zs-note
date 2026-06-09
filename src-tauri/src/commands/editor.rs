@@ -4,7 +4,7 @@ use std::path::{Component, Path, PathBuf};
 use tauri::State;
 use walkdir::WalkDir;
 
-use crate::types::{AppState, FileEntry};
+use crate::types::{AppState, FileEntry, RecentFile};
 
 #[tauri::command]
 pub fn read_file(state: State<'_, AppState>, path: String) -> Result<String, String> {
@@ -220,7 +220,7 @@ pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<RecentFile>, String> {
     let vault = &state.vault_path;
     let mut files: Vec<(PathBuf, std::time::SystemTime)> = Vec::new();
 
@@ -235,11 +235,24 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, Strin
     }
 
     files.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(files
+    files
         .into_iter()
         .take(20)
-        .map(|(p, _)| p.to_string_lossy().to_string())
-        .collect())
+        .map(|(path, modified)| {
+            let name = path
+                .file_name()
+                .map(|name| name.to_string_lossy().to_string())
+                .unwrap_or_else(|| path.to_string_lossy().to_string());
+            let path = vault_relative_path(vault, &path)?;
+            let modified = chrono::DateTime::<chrono::Utc>::from(modified);
+
+            Ok(RecentFile {
+                name,
+                path,
+                modified,
+            })
+        })
+        .collect()
 }
 
 /// Write raw bytes to a file (used for drag-and-drop ingestion).
