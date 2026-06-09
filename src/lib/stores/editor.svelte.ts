@@ -1,5 +1,6 @@
 import type { FileEntry, IngestProgress } from '../types';
 import * as editorCommands from '../commands/editor';
+import { toVaultRelativePath } from '../utils/vaultPath';
 
 let activeFilePath = $state<string>('');
 let content = $state<string>('');
@@ -15,14 +16,15 @@ let ingestProgress = $state<IngestProgress[]>([]);
 const isDirty = $derived(content !== previousContent);
 
 function openFile(path: string): void {
+  const relativePath = toVaultRelativePath(path);
   isLoading = true;
   error = null;
 
-  editorCommands.readFile(path)
+  editorCommands.readFile(relativePath)
     .then((fileContent) => {
       content = fileContent;
       previousContent = fileContent;
-      activeFilePath = path;
+      activeFilePath = relativePath;
       isLoading = false;
     })
     .catch((err) => {
@@ -35,7 +37,7 @@ function saveFile(): Promise<void> {
   if (!activeFilePath) return Promise.resolve();
   error = null;
 
-  return editorCommands.saveFile(activeFilePath, content)
+  return editorCommands.saveFile(toVaultRelativePath(activeFilePath), content)
     .then(() => {
       previousContent = content;
     })

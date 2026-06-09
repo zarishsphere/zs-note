@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FileEntry } from '../types';
   import { getI18n } from '../i18n';
+  import { toVaultRelativePath } from '../utils/vaultPath';
 
   const i18n = getI18n();
 
@@ -31,6 +32,7 @@
   let expandedCache = $state(new Map<string, FileEntry[]>());
 
   function toggleDir(path: string, entry: FileEntry) {
+    path = toVaultRelativePath(path);
     const next = new Set(collapsedDirs);
     if (next.has(path)) {
       next.delete(path);
@@ -45,10 +47,11 @@
   }
 
   function isDirExpanded(path: string): boolean {
-    return !collapsedDirs.has(path);
+    return !collapsedDirs.has(toVaultRelativePath(path));
   }
 
   function handleSelect(path: string, e: MouseEvent) {
+    path = toVaultRelativePath(path);
     if (e.metaKey || e.ctrlKey) {
       const next = new Set(selectedPaths);
       if (next.has(path)) {
@@ -152,30 +155,36 @@
     if (newName && newName !== entry.name) {
       const parts = entry.path.split('/');
       parts[parts.length - 1] = newName;
-      const newPath = parts.join('/');
-      window.dispatchEvent(new CustomEvent('file:rename', { detail: { oldPath: entry.path, newPath } }));
+      const newPath = toVaultRelativePath(parts.join('/'));
+      window.dispatchEvent(new CustomEvent('file:rename', {
+        detail: { oldPath: toVaultRelativePath(entry.path), newPath },
+      }));
     }
   }
 
   function handleDeleteEntry(entry: FileEntry) {
     contextMenuTarget = null;
     if (confirm(`Delete "${entry.name}"?`)) {
-      window.dispatchEvent(new CustomEvent('file:delete', { detail: { path: entry.path } }));
+      window.dispatchEvent(new CustomEvent('file:delete', {
+        detail: { path: toVaultRelativePath(entry.path) },
+      }));
     }
   }
 
   function handleDuplicate(entry: FileEntry) {
     contextMenuTarget = null;
-    window.dispatchEvent(new CustomEvent('file:duplicate', { detail: { path: entry.path } }));
+    window.dispatchEvent(new CustomEvent('file:duplicate', {
+      detail: { path: toVaultRelativePath(entry.path) },
+    }));
   }
 
   function handleCopyPath(entry: FileEntry) {
     contextMenuTarget = null;
-    navigator.clipboard.writeText(entry.path);
+    navigator.clipboard.writeText(toVaultRelativePath(entry.path));
   }
 
   function handleDragStart(e: DragEvent, entry: FileEntry) {
-    e.dataTransfer?.setData('text/plain', entry.path);
+    e.dataTransfer?.setData('text/plain', toVaultRelativePath(entry.path));
     e.dataTransfer!.effectAllowed = 'move';
   }
 
@@ -186,7 +195,10 @@
     if (sourcePath) {
       const name = sourcePath.split('/').pop();
       window.dispatchEvent(new CustomEvent('file:move', {
-        detail: { oldPath: sourcePath, newPath: `${targetDir.path}/${name}` },
+        detail: {
+          oldPath: toVaultRelativePath(sourcePath),
+          newPath: toVaultRelativePath(`${targetDir.path}/${name}`),
+        },
       }));
     }
   }
@@ -265,14 +277,18 @@
         <button class="context-item" onclick={() => {
           const name = prompt('New file name:');
           if (name) {
-            window.dispatchEvent(new CustomEvent('file:create', { detail: { path: `${contextMenuTarget!.entry.path}/${name}` } }));
+            window.dispatchEvent(new CustomEvent('file:create', {
+              detail: { path: toVaultRelativePath(`${contextMenuTarget!.entry.path}/${name}`) },
+            }));
           }
           contextMenuTarget = null;
         }}>{i18n.t('file.new')}</button>
         <button class="context-item" onclick={() => {
           const name = prompt('New folder name:');
           if (name) {
-            window.dispatchEvent(new CustomEvent('file:create-folder', { detail: { path: `${contextMenuTarget!.entry.path}/${name}` } }));
+            window.dispatchEvent(new CustomEvent('file:create-folder', {
+              detail: { path: toVaultRelativePath(`${contextMenuTarget!.entry.path}/${name}`) },
+            }));
           }
           contextMenuTarget = null;
         }}>New Folder</button>

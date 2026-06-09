@@ -56,29 +56,29 @@ pub fn list_files(
             continue;
         }
 
-        if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-            entries.push(FileEntry::Folder {
-                name,
-                path,
-                children: Vec::new(),
-            });
+        let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
+        let relative_path = vault_relative_path(&state.vault_path, &path)?;
+        let extension = if is_dir {
+            None
         } else {
-            entries.push(FileEntry::File { name, path });
-        }
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| ext.to_string())
+        };
+
+        entries.push(FileEntry {
+            name,
+            path: relative_path,
+            is_dir,
+            children: is_dir.then(Vec::new),
+            extension,
+        });
     }
 
     entries.sort_by(|a, b| {
-        let a_is_folder = matches!(a, FileEntry::Folder { .. });
-        let b_is_folder = matches!(b, FileEntry::Folder { .. });
-        b_is_folder.cmp(&a_is_folder).then_with(|| {
-            let a_name = match a {
-                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
-            };
-            let b_name = match b {
-                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
-            };
-            a_name.to_lowercase().cmp(&b_name.to_lowercase())
-        })
+        b.is_dir
+            .cmp(&a.is_dir)
+            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });
 
     Ok(entries)
@@ -189,7 +189,7 @@ pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String
 }
 
 #[tauri::command]
-pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<FileEntry>, String> {
     let vault = &state.vault_path;
     let mut files: Vec<(PathBuf, std::time::SystemTime)> = Vec::new();
 
@@ -204,16 +204,37 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, Strin
     }
 
     files.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(files
+    files
         .into_iter()
         .take(20)
-        .map(|(p, _)| p.to_string_lossy().to_string())
-        .collect())
+        .map(|(path, _)| {
+            let name = path
+                .file_name()
+                .map(|name| name.to_string_lossy().to_string())
+                .unwrap_or_default();
+            let extension = path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| ext.to_string());
+
+            Ok(FileEntry {
+                name,
+                path: vault_relative_path(vault, &path)?,
+                is_dir: false,
+                children: None,
+                extension,
+            })
+        })
+        .collect()
 }
 
 /// Write raw bytes to a file (used for drag-and-drop ingestion).
 #[tauri::command]
-pub fn write_file(state: State<'_, AppState>, path: String, content: Vec<u8>) -> Result<(), String> {
+pub fn write_file(
+    state: State<'_, AppState>,
+    path: String,
+    content: Vec<u8>,
+) -> Result<(), String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
     if let Some(parent) = full_path.parent() {
         std::fs::create_dir_all(parent)
@@ -227,9 +248,20 @@ pub fn write_file(state: State<'_, AppState>, path: String, content: Vec<u8>) ->
 #[tauri::command]
 pub fn get_temp_dir(state: State<'_, AppState>) -> Result<String, String> {
     let temp_dir = state.vault_path.join(".znrc-temp");
-    std::fs::create_dir_all(&temp_dir)
-        .map_err(|e| format!("Failed to create temp dir: {}", e))?;
+    std::fs::create_dir_all(&temp_dir).map_err(|e| format!("Failed to create temp dir: {}", e))?;
     Ok(temp_dir.to_string_lossy().to_string())
+}
+
+fn vault_relative_path(vault_root: &Path, path: &Path) -> Result<String, String> {
+    let relative = path
+        .strip_prefix(vault_root)
+        .map_err(|_| "Path is outside vault".to_string())?;
+
+    Ok(relative
+        .components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/"))
 }
 
 fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {
