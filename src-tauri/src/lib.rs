@@ -18,6 +18,18 @@ use crate::sandbox::SandboxEngine;
 use crate::types::AppState;
 use crate::vector::VectorStore;
 
+/// Initializes application state, registers Tauri plugins and command handlers, and starts the Tauri runtime.
+///
+/// This is the application's entry point: it configures logging, constructs and shares core services (configuration,
+/// sandbox, Git engine, vector store, and vault path), attaches them to the Tauri application state, registers
+/// platform plugins and all IPC command handlers, and then runs the Tauri event loop.
+///
+/// # Examples
+///
+/// ```no_run
+/// // Starts the application (this will run the Tauri event loop).
+/// zarish_note::run();
+/// ```
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     init_logging();
