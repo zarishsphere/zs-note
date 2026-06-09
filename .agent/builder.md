@@ -10,8 +10,8 @@ You are the ZarishNote builder. Your job is to take specification documents from
 
 ## Workflow
 
-1. Read the relevant spec from `002-specifications/` 
-2. Read the architecture from `003-architecture/`
+1. Read the relevant spec from the [002-specifications/](../002-specifications/) folder
+2. Read the architecture from the [003-architecture/](../003-architecture/) folder
 3. Check `TODO.md` for task priority and context
 4. Create or update code in `zs-note` repo
 5. Run the existing test/lint/typecheck commands to verify
