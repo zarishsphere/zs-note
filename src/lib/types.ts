@@ -34,7 +34,7 @@ export interface ChatMessage {
 export interface Provider {
   id: string;
   name: string;
-  type: 'openai' | 'anthropic' | 'google' | 'ollama' | 'custom';
+  type: ProviderType;
   apiKey?: string;
   baseUrl?: string;
   models: string[];
@@ -42,17 +42,19 @@ export interface Provider {
   enabled: boolean;
 }
 
+export type ProviderType = 'openai' | 'anthropic' | 'google' | 'deepseek' | 'ollama' | 'custom';
+
 export interface ProviderConfig {
   id: string;
   name: string;
-  provider_type: string;
-  api_key?: string;
-  base_url?: string;
+  provider_type: ProviderType;
+  api_key?: string | null;
+  base_url?: string | null;
   models: string[];
   default_model: string;
   enabled: boolean;
-  temperature?: number;
-  max_tokens?: number;
+  temperature?: number | null;
+  max_tokens?: number | null;
 }
 
 export interface ToolConfig {
