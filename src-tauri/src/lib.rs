@@ -112,6 +112,8 @@ pub fn run() {
             commands::publish::upload_image,
             commands::publish::generate_rss,
             commands::publish::list_publications,
+            commands::config::get_providers,
+            commands::config::save_providers,
             commands::image_gen::generate_image,
         ])
         .run(tauri::generate_context!())

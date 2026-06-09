@@ -41,9 +41,7 @@ interface EditorCommands {
     variables: Record<string, string>,
   ): Promise<string>;
   ai_list_models(provider: string): Promise<string[]>;
-  test_provider_connection(
-    provider: import('./lib/types').ProviderConfig,
-  ): Promise<boolean>;
+  test_provider_connection(provider: string): Promise<boolean>;
 
   sandbox_exec(
     wasm_path: string,
