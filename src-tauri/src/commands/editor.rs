@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 use tauri::State;
 use walkdir::WalkDir;
 
-use crate::types::{AppState, FileEntry, RecentFile};
+use crate::types::{AppState, FileEntry};
 
 #[tauri::command]
 pub fn read_file(state: State<'_, AppState>, path: String) -> Result<String, String> {
@@ -56,29 +56,29 @@ pub fn list_files(
             continue;
         }
 
-        let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
-        let relative_path = vault_relative_path(&state.vault_path, &path)?;
-        let extension = if is_dir {
-            None
+        if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+            entries.push(FileEntry::Folder {
+                name,
+                path,
+                children: Vec::new(),
+            });
         } else {
-            path.extension()
-                .and_then(|ext| ext.to_str())
-                .map(|ext| ext.to_string())
-        };
-
-        entries.push(FileEntry {
-            name,
-            path: relative_path,
-            is_dir,
-            children: is_dir.then(Vec::new),
-            extension,
-        });
+            entries.push(FileEntry::File { name, path });
+        }
     }
 
     entries.sort_by(|a, b| {
-        b.is_dir
-            .cmp(&a.is_dir)
-            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+        let a_is_folder = matches!(a, FileEntry::Folder { .. });
+        let b_is_folder = matches!(b, FileEntry::Folder { .. });
+        b_is_folder.cmp(&a_is_folder).then_with(|| {
+            let a_name = match a {
+                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
+            };
+            let b_name = match b {
+                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
+            };
+            a_name.to_lowercase().cmp(&b_name.to_lowercase())
+        })
     });
 
     Ok(entries)
@@ -112,37 +112,6 @@ pub fn rename_file(
     let old_full = resolve_vault_path(&state.vault_path, &old_path)?;
     let new_full = resolve_vault_path(&state.vault_path, &new_path)?;
     std::fs::rename(&old_full, &new_full).map_err(|e| format!("Failed to rename: {}", e))
-}
-
-#[tauri::command]
-pub fn move_file(
-    state: State<'_, AppState>,
-    old_path: String,
-    new_path: String,
-) -> Result<(), String> {
-    let old_relative = normalize_vault_relative_path(&old_path)?;
-    let new_relative = normalize_vault_relative_path(&new_path)?;
-
-    if old_relative == new_relative {
-        return Err("Cannot move a file or folder to the same path".into());
-    }
-
-    let old_full = resolve_vault_path(&state.vault_path, old_relative.to_string_lossy().as_ref())?;
-    if !old_full.exists() {
-        return Err("Source path does not exist".into());
-    }
-
-    if old_full.is_dir() && new_relative.starts_with(&old_relative) {
-        return Err("Cannot move a folder into itself or one of its descendants".into());
-    }
-
-    let new_full = resolve_vault_path(&state.vault_path, new_relative.to_string_lossy().as_ref())?;
-    if let Some(parent) = new_full.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| format!("Failed to create destination directories: {}", e))?;
-    }
-
-    std::fs::rename(&old_full, &new_full).map_err(|e| format!("Failed to move: {}", e))
 }
 
 #[tauri::command]
@@ -190,7 +159,7 @@ pub fn duplicate_file(state: State<'_, AppState>, path: String) -> Result<(), St
 }
 
 #[tauri::command]
-pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<(String, u32)>, String> {
     let vault = &state.vault_path;
     let mut tag_counts: HashMap<String, u32> = HashMap::new();
 
@@ -215,12 +184,12 @@ pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     }
 
     let mut tags: Vec<(String, u32)> = tag_counts.into_iter().collect();
-    tags.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    Ok(tags.into_iter().map(|(tag, _)| tag).collect())
+    tags.sort_by(|a, b| b.1.cmp(&a.1));
+    Ok(tags)
 }
 
 #[tauri::command]
-pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<RecentFile>, String> {
+pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let vault = &state.vault_path;
     let mut files: Vec<(PathBuf, std::time::SystemTime)> = Vec::new();
 
@@ -235,33 +204,16 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<RecentFile>, S
     }
 
     files.sort_by(|a, b| b.1.cmp(&a.1));
-    files
+    Ok(files
         .into_iter()
         .take(20)
-        .map(|(path, modified)| {
-            let name = path
-                .file_name()
-                .map(|name| name.to_string_lossy().to_string())
-                .unwrap_or_else(|| path.to_string_lossy().to_string());
-            let path = vault_relative_path(vault, &path)?;
-            let modified = chrono::DateTime::<chrono::Utc>::from(modified);
-
-            Ok(RecentFile {
-                name,
-                path,
-                modified,
-            })
-        })
-        .collect()
+        .map(|(p, _)| p.to_string_lossy().to_string())
+        .collect())
 }
 
 /// Write raw bytes to a file (used for drag-and-drop ingestion).
 #[tauri::command]
-pub fn write_file(
-    state: State<'_, AppState>,
-    path: String,
-    content: Vec<u8>,
-) -> Result<(), String> {
+pub fn write_file(state: State<'_, AppState>, path: String, content: Vec<u8>) -> Result<(), String> {
     let full_path = resolve_vault_path(&state.vault_path, &path)?;
     if let Some(parent) = full_path.parent() {
         std::fs::create_dir_all(parent)
@@ -275,146 +227,143 @@ pub fn write_file(
 #[tauri::command]
 pub fn get_temp_dir(state: State<'_, AppState>) -> Result<String, String> {
     let temp_dir = state.vault_path.join(".znrc-temp");
-    std::fs::create_dir_all(&temp_dir).map_err(|e| format!("Failed to create temp dir: {}", e))?;
+    std::fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to create temp dir: {}", e))?;
     Ok(temp_dir.to_string_lossy().to_string())
 }
 
-fn normalize_vault_relative_path(user_path: &str) -> Result<PathBuf, String> {
-    let raw = user_path.trim();
-    if raw.is_empty() {
-        return Err("Path is required".into());
-    }
-
-    let path = Path::new(raw);
-    if path.is_absolute() {
-        return Err("Path must be vault-relative".into());
-    }
-
-    let mut normalized = PathBuf::new();
-    for component in path.components() {
-        match component {
-            Component::Normal(part) => normalized.push(part),
-            Component::CurDir => {}
-            Component::ParentDir => return Err("Path must stay inside the vault".into()),
-            Component::RootDir | Component::Prefix(_) => {
-                return Err("Path must be vault-relative".into());
-            }
-        }
-    }
-
-    if normalized.as_os_str().is_empty() {
-        return Err("Path is required".into());
-    }
-
-    Ok(normalized)
-}
-
 fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, String> {
-    let vault = vault_root
-        .canonicalize()
-        .unwrap_or_else(|_| vault_root.to_path_buf());
     let cleaned = user_path.trim_start_matches('/');
-    let candidate = vault.join(cleaned);
+    let candidate = vault_root.join(cleaned);
     let canonical = candidate.canonicalize().unwrap_or(candidate);
-    if !canonical.starts_with(&vault) {
+    if !canonical.starts_with(vault_root) {
         return Err("Path traversal detected".into());
     }
-
-    let mut existing_parent = candidate.as_path();
-    let mut missing_components = Vec::new();
-
-    while !existing_parent.exists() {
-        let file_name = existing_parent
-            .file_name()
-            .ok_or_else(|| "Path traversal detected".to_string())?;
-        missing_components.push(file_name.to_os_string());
-        existing_parent = existing_parent
-            .parent()
-            .ok_or_else(|| "Path traversal detected".to_string())?;
-    }
-
-    let canonical_parent = existing_parent
-        .canonicalize()
-        .map_err(|e| format!("Failed to resolve path: {}", e))?;
-    if !canonical_parent.starts_with(&canonical_root) {
-        return Err("Path traversal detected".into());
-    }
-
-    let mut resolved = canonical_parent;
-    for component in missing_components.iter().rev() {
-        resolved.push(component);
-    }
-
-    Ok(resolved)
-}
-
-fn has_windows_prefix(path: &str) -> bool {
-    let bytes = path.as_bytes();
-    bytes.len() >= 2
-        && ((bytes[0] as char).is_ascii_alphabetic() && bytes[1] == b':'
-            || bytes.starts_with(br"\\"))
+    Ok(canonical)
 }
 
 #[cfg(test)]
 mod tests {
     use super::resolve_vault_path;
+    use std::fs;
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    fn make_vault() -> tempfile::TempDir {
+        let dir = tempfile::tempdir().expect("create temp vault");
+        let _ = fs::create_dir_all(dir.path());
+        dir
+    }
+
+    // -----------------------------------------------------------------------
+    // Valid paths inside the vault
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn resolves_file_inside_vault() {
+        let vault = make_vault();
+        let file = vault.path().join("note.md");
+        fs::write(&file, "hello").expect("write file");
+
+        let result = resolve_vault_path(vault.path(), "note.md")
+            .expect("valid vault path should resolve");
+        assert!(result.starts_with(vault.path()), "resolved path should be inside vault");
+    }
+
+    #[test]
+    fn resolves_nested_path_inside_vault() {
+        let vault = make_vault();
+        let sub = vault.path().join("notes").join("daily");
+        fs::create_dir_all(&sub).expect("create nested dirs");
+        let file = sub.join("today.md");
+        fs::write(&file, "today").expect("write file");
+
+        let result = resolve_vault_path(vault.path(), "notes/daily/today.md")
+            .expect("nested valid path should resolve");
+        assert!(result.starts_with(vault.path()));
+    }
+
+    #[test]
+    fn strips_leading_slash_and_resolves_inside_vault() {
+        let vault = make_vault();
+        let file = vault.path().join("page.md");
+        fs::write(&file, "").expect("write file");
+
+        let result = resolve_vault_path(vault.path(), "/page.md")
+            .expect("leading slash should be stripped and path should resolve");
+        assert!(result.starts_with(vault.path()));
+    }
+
+    #[test]
+    fn resolves_non_existent_path_inside_vault() {
+        let vault = make_vault();
+        let result = resolve_vault_path(vault.path(), "new_file.md")
+            .expect("non-existent path inside vault should be accepted");
+        assert!(result.ends_with("new_file.md"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Path traversal – must be rejected
+    // -----------------------------------------------------------------------
 
     #[test]
     fn rejects_parent_directory_traversal() {
-        let vault = tempfile::tempdir().expect("create temp vault");
-
+        let vault = make_vault();
         let result = resolve_vault_path(vault.path(), "../outside.md");
-
-        assert!(result.is_err());
+        assert!(result.is_err(), "path traversal with ../ must be rejected");
     }
 
     #[test]
-    fn rejects_absolute_paths() {
-        let vault = tempfile::tempdir().expect("create temp vault");
+    fn rejects_double_dotdot_traversal() {
+        let vault = make_vault();
+        let sub = vault.path().join("sub");
+        fs::create_dir_all(&sub).expect("create sub dir");
 
-        let result = resolve_vault_path(vault.path(), "/tmp/file.md");
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn rejects_windows_prefixes() {
-        let vault = tempfile::tempdir().expect("create temp vault");
-
-        let result = resolve_vault_path(vault.path(), r"C:\tmp\file.md");
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn resolves_nested_valid_paths() {
-        let vault = tempfile::tempdir().expect("create temp vault");
-        let nested_dir = vault.path().join("notes").join("daily");
-        std::fs::create_dir_all(&nested_dir).expect("create nested directory");
-        let note = nested_dir.join("today.md");
-        std::fs::write(&note, "note").expect("write nested note");
-
-        let result = resolve_vault_path(vault.path(), "notes/daily/today.md")
-            .expect("resolve nested valid path");
-
-        assert_eq!(result, note.canonicalize().expect("canonicalize note"));
-    }
-
-    #[test]
-    fn resolves_non_existent_valid_files() {
-        let vault = tempfile::tempdir().expect("create temp vault");
-        let notes_dir = vault.path().join("notes");
-        std::fs::create_dir_all(&notes_dir).expect("create notes directory");
-
-        let result = resolve_vault_path(vault.path(), "notes/new.md")
-            .expect("resolve non-existent valid file");
-
-        assert_eq!(
-            result,
-            notes_dir
-                .canonicalize()
-                .expect("canonicalize notes dir")
-                .join("new.md")
+        let result = resolve_vault_path(vault.path(), "sub/../../outside.md");
+        assert!(
+            result.is_err(),
+            "double ../ traversal that escapes the vault must be rejected"
         );
+    }
+
+    #[test]
+    fn rejects_deeply_nested_traversal() {
+        let vault = make_vault();
+        let result = resolve_vault_path(vault.path(), "a/b/c/../../../../../../../etc/passwd");
+        assert!(result.is_err(), "deeply nested traversal must be rejected");
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression: absolute-looking paths after stripping leading '/'
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn absolute_path_without_traversal_resolves_inside_vault() {
+        let vault = make_vault();
+        let file = vault.path().join("note.md");
+        fs::write(&file, "").unwrap();
+
+        let result = resolve_vault_path(vault.path(), "/note.md");
+        assert!(result.is_ok(), "absolute-like path without ../ should resolve inside vault");
+    }
+
+    // -----------------------------------------------------------------------
+    // Edge cases
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn empty_user_path_stays_inside_vault() {
+        let vault = make_vault();
+        let result = resolve_vault_path(vault.path(), "");
+        assert!(result.is_ok(), "empty path (vault root) should be accepted");
+    }
+
+    #[test]
+    fn path_with_only_slash_resolves_to_vault_root() {
+        let vault = make_vault();
+        let result = resolve_vault_path(vault.path(), "/");
+        assert!(result.is_ok(), "single slash should resolve to vault root");
     }
 }

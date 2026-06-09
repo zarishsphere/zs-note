@@ -278,3 +278,148 @@ fn test_config_load_missing_file_returns_default() {
     let loaded = Config::load(dir.path()).expect("load with no .znrc should return default");
     assert_eq!(loaded.version, "1");
 }
+
+// ---------------------------------------------------------------------------
+// AIConfig – providers field removed (PR change)
+// ---------------------------------------------------------------------------
+
+/// After this PR, AIConfig no longer contains a `providers` Vec.
+/// The default config should only carry the flat provider/model/api_key fields.
+#[test]
+fn test_ai_config_has_no_providers_field() {
+    let cfg = Config::default();
+    // The only AI fields that should exist are the flat ones introduced
+    // when the providers Vec was removed.
+    assert_eq!(cfg.ai.provider, "ollama");
+    assert_eq!(cfg.ai.model, "llama3.2");
+    assert!(cfg.ai.api_key.is_none());
+    assert_eq!(cfg.ai.max_tokens, 4096);
+    assert!((cfg.ai.temperature - 0.7).abs() < f32::EPSILON);
+    // base_url default for Ollama
+    assert_eq!(
+        cfg.ai.base_url.as_deref(),
+        Some("http://localhost:11434"),
+        "default base_url should be the Ollama endpoint"
+    );
+}
+
+/// The config loaded from disk should not call any migration path
+/// (ensure_provider_records was removed); validate should still pass.
+#[test]
+fn test_config_load_does_not_need_provider_migration() {
+    let dir = tempfile::tempdir().expect("temp dir");
+    let original = Config::default();
+    original.save(dir.path()).expect("save");
+
+    let loaded = Config::load(dir.path()).expect("load");
+    // validate must pass without any mutation
+    assert!(loaded.validate().is_ok());
+    assert_eq!(loaded.ai.provider, "ollama");
+    assert_eq!(loaded.ai.model, "llama3.2");
+}
+
+/// A YAML config that was written without a `providers` block (the new
+/// format) should load cleanly and validate.
+#[test]
+fn test_config_load_yaml_without_providers_block() {
+    let dir = tempfile::tempdir().expect("temp dir");
+
+    let yaml = r#"
+version: "1"
+vault:
+  name: "Test Vault"
+  path: "."
+  vault_type: "local"
+  created_at: "2024-01-01T00:00:00Z"
+  version: "1"
+editor:
+  theme: "zarish-light"
+  fontSize: 16
+  fontFamily: "Inter, sans-serif"
+  lineHeight: 1.7
+  proseWidth: 720
+  vimMode: false
+  spellCheck: true
+  autoSave: true
+ai:
+  provider: "openai"
+  model: "gpt-4o"
+  api_key: "sk-test"
+  base_url: ~
+  max_tokens: 8192
+  temperature: 0.5
+theme:
+  name: "zarish-light"
+  background: "#ffffff"
+  foreground: "#1a1a2e"
+  accent: "#7c3aed"
+  font_family: "Inter, sans-serif"
+  font_size: 16
+sandbox:
+  enabled: true
+  default_memory_limit: 67108864
+  default_timeout: 30000
+  allowed_domains: []
+  max_module_size: 10485760
+  tools: []
+git:
+  auto_commit: true
+  commit_style: "conventional"
+  remote: ~
+sync:
+  autoCommit: true
+  commitStyle: "conventional"
+  remote: ~
+keys:
+  save: "ctrl+s"
+  search: "ctrl+p"
+  command_palette: "ctrl+shift+p"
+  toggle_sidebar: "ctrl+b"
+  toggle_preview: "ctrl+shift+v"
+plugins:
+  enabled: []
+  settings: {}
+voice:
+  enabled: false
+  language: "en-US"
+  model: "base"
+knowledge: []
+publish: []
+features:
+  - "sandbox"
+  - "ai"
+  - "git"
+  - "search"
+"#;
+
+    let config_path = dir.path().join(".znrc");
+    std::fs::write(&config_path, yaml).expect("write yaml");
+
+    let loaded = Config::load(dir.path()).expect("load yaml without providers block");
+    assert!(loaded.validate().is_ok());
+    assert_eq!(loaded.ai.provider, "openai");
+    assert_eq!(loaded.ai.model, "gpt-4o");
+    assert_eq!(loaded.ai.api_key.as_deref(), Some("sk-test"));
+    assert_eq!(loaded.ai.max_tokens, 8192);
+    assert!((loaded.ai.temperature - 0.5).abs() < f32::EPSILON);
+}
+
+/// Changing the AI provider and model in config then saving and reloading
+/// should preserve those values (regression for the removed migration code).
+#[test]
+fn test_ai_config_custom_provider_round_trips() {
+    let dir = tempfile::tempdir().expect("temp dir");
+    let mut cfg = Config::default();
+    cfg.ai.provider = "claude".to_string();
+    cfg.ai.model = "claude-opus-4-5".to_string();
+    cfg.ai.api_key = Some("test-key".to_string());
+    cfg.ai.temperature = 1.0;
+
+    cfg.save(dir.path()).expect("save");
+    let loaded = Config::load(dir.path()).expect("load");
+
+    assert_eq!(loaded.ai.provider, "claude");
+    assert_eq!(loaded.ai.model, "claude-opus-4-5");
+    assert_eq!(loaded.ai.api_key.as_deref(), Some("test-key"));
+    assert!((loaded.ai.temperature - 1.0).abs() < f32::EPSILON);
+}

@@ -17,5 +17,7 @@ mod test_git_engine;
 mod test_mcp_protocol;
 #[path = "integration/test_sandbox_executor.rs"]
 mod test_sandbox_executor;
+#[path = "integration/test_types.rs"]
+mod test_types;
 #[path = "integration/test_vector_store.rs"]
 mod test_vector_store;
