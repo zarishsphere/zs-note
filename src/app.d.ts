@@ -54,8 +54,10 @@ interface EditorCommands {
   sandbox_restore_snapshot(name: string): Promise<void>;
   sandbox_delete_snapshot(name: string): Promise<void>;
 
-  get_config(): Promise<import('./lib/types').VaultConfig>;
-  save_config(config: import('./lib/types').VaultConfig): Promise<void>;
+  get_config(): Promise<unknown>;
+  update_config(new_config: unknown): Promise<void>;
+  reset_config(): Promise<void>;
+  reload_config(): Promise<unknown>;
   get_editor_settings(): Promise<import('./lib/types').EditorSettings>;
   save_editor_settings(
     settings: import('./lib/types').EditorSettings,

@@ -20,6 +20,7 @@
   let activeTab = $state('editor');
   let saving = $state(false);
   let error = $state<string | null>(null);
+  let displayedError = $derived(error ?? config.error);
 
   const tabs = [
     { id: 'editor', label: 'Editor' },
@@ -36,15 +37,7 @@
     saving = true;
     error = null;
 
-    Promise.all([
-      config.saveEditorSettings(),
-      config.saveVaultConfig(),
-      config.saveProviders(),
-      config.saveSandboxConfig(),
-      config.saveSyncConfig(),
-      config.savePublishTargets(),
-      config.saveImageHost(),
-    ])
+    config.saveAll()
       .then(() => {
         ai.setProviders(config.providers);
       })
@@ -137,9 +130,9 @@
     </div>
 
     <div class="tab-content">
-      {#if error}
+      {#if displayedError}
         <div class="error-banner text-sm" style="color: var(--color-error); padding: 8px 12px; background: var(--color-error-bg); border-radius: var(--radius-md); margin-bottom: 12px;">
-          {error}
+          {displayedError}
         </div>
       {/if}
 
