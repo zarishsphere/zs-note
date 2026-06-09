@@ -350,19 +350,20 @@ Specs: `001-ai-chat-spec.md`, `002-ai-providers.md`, `003-ai-templates.md`
 
 ## C. Infrastructure Status
 
-| Item | Needed By | How | Status |
-|---|---|---|---|---|
-| `zarishsphere.com` domain | Already owned | Cloudflare free DNS + Pages | ✅ Done |
-| `security@zarishsphere.com` forwarding | Phase 1 | Cloudflare Email Routing (free) or Mailgun free tier | ❌ Needs setup |
-| `registry.zarishsphere.com` DNS | Phase 2 | Add CNAME record in Cloudflare DNS (free) | ❌ 1 DNS record |
-| `registry.zarishsphere.com` static site | Phase 2 | Cloudflare Pages from GitHub `registry` repo (free tier) | ❌ Repo + deploy |
-| `zarishsphere/zs-note` code + specs repo | Phase 1 | GitHub — code + blueprint merged | ✅ Done (30+ commits, 115+ code files + 39 spec files) |
-| Rust toolchain (`rustup` + `cargo`) | Phase 1 | Official installer | ✅ Done (v1.96.0) |
-| Tauri system deps (`libwebkit2gtk-4.1`, etc.) | Phase 1 | `apt install` on Ubuntu / `brew` on macOS | ✅ Done |
-| GitHub Actions CI workflow | Phase 1 | `.github/workflows/ci.yml` | ✅ Passed (format ✅, clippy ✅, test ✅, typecheck ✅, ruff ✅) |
-| GitHub Actions build workflow | Phase 1 | `.github/workflows/build.yml` | ✅ Done (triggered on tag push) |
-| Dependabot config | Phase 1 | `.github/dependabot.yml` | ✅ Done (npm, cargo, pip, actions) |
-| GitHub Pages for project docs | Phase 1 | Served from `/docs` on `main` | ✅ Configured at `zarishsphere.github.io/zs-note` |
+## Phase F: Infrastructure Status
+
+The infrastructure blueprint establishes the core configuration for nameservers, domain routing, secure email configurations, and automated CI/CD pipelines to validate schemas and security configurations across the ecosystem.
+
+| Task ID | Component / Initiative | Scope & Requirements | Status |
+| :--- | :--- | :--- | :--- |
+| F.1 | GitHub Organization Architecture | Establish the ZarishSphere organization, repository rules, and base access controls. | 🔴 Not Started |
+| F.2 | Cloudflare Integration | Configure primary nameserver routing, edge caching, and proxy settings. | 🔴 Not Started |
+| F.3 | Domain Management | Establish domain ownership records, custom base domains, and DNS rules. | 🔴 Not Started |
+| F.4 | Email Infrastructure | Secure official mailing configurations (SPF, DKIM, DMARC) for primary routing. | 🔴 Not Started |
+| F.5 | CI/CD Pipeline Foundations | Design validation workflows for schema verification, security linting, and automated builds. | 🔴 Not Started |
+| F.6 | Isolated Unit Routing Rules | Enforce data isolation logic and access parameters across structural pipeline configurations. | 🔴 Not Started |
+
+> **Progress Summary:** 0 of 6 tasks completed. Infrastructure tracking initialized as of June 2026.
 
 ---
 
