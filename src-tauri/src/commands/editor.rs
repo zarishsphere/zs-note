@@ -319,5 +319,102 @@ fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, Str
     if !canonical.starts_with(&vault) {
         return Err("Path traversal detected".into());
     }
-    Ok(canonical)
+
+    let mut existing_parent = candidate.as_path();
+    let mut missing_components = Vec::new();
+
+    while !existing_parent.exists() {
+        let file_name = existing_parent
+            .file_name()
+            .ok_or_else(|| "Path traversal detected".to_string())?;
+        missing_components.push(file_name.to_os_string());
+        existing_parent = existing_parent
+            .parent()
+            .ok_or_else(|| "Path traversal detected".to_string())?;
+    }
+
+    let canonical_parent = existing_parent
+        .canonicalize()
+        .map_err(|e| format!("Failed to resolve path: {}", e))?;
+    if !canonical_parent.starts_with(&canonical_root) {
+        return Err("Path traversal detected".into());
+    }
+
+    let mut resolved = canonical_parent;
+    for component in missing_components.iter().rev() {
+        resolved.push(component);
+    }
+
+    Ok(resolved)
+}
+
+fn has_windows_prefix(path: &str) -> bool {
+    let bytes = path.as_bytes();
+    bytes.len() >= 2
+        && ((bytes[0] as char).is_ascii_alphabetic() && bytes[1] == b':'
+            || bytes.starts_with(br"\\"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_vault_path;
+
+    #[test]
+    fn rejects_parent_directory_traversal() {
+        let vault = tempfile::tempdir().expect("create temp vault");
+
+        let result = resolve_vault_path(vault.path(), "../outside.md");
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_absolute_paths() {
+        let vault = tempfile::tempdir().expect("create temp vault");
+
+        let result = resolve_vault_path(vault.path(), "/tmp/file.md");
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_windows_prefixes() {
+        let vault = tempfile::tempdir().expect("create temp vault");
+
+        let result = resolve_vault_path(vault.path(), r"C:\tmp\file.md");
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn resolves_nested_valid_paths() {
+        let vault = tempfile::tempdir().expect("create temp vault");
+        let nested_dir = vault.path().join("notes").join("daily");
+        std::fs::create_dir_all(&nested_dir).expect("create nested directory");
+        let note = nested_dir.join("today.md");
+        std::fs::write(&note, "note").expect("write nested note");
+
+        let result = resolve_vault_path(vault.path(), "notes/daily/today.md")
+            .expect("resolve nested valid path");
+
+        assert_eq!(result, note.canonicalize().expect("canonicalize note"));
+    }
+
+    #[test]
+    fn resolves_non_existent_valid_files() {
+        let vault = tempfile::tempdir().expect("create temp vault");
+        let notes_dir = vault.path().join("notes");
+        std::fs::create_dir_all(&notes_dir).expect("create notes directory");
+
+        let result = resolve_vault_path(vault.path(), "notes/new.md")
+            .expect("resolve non-existent valid file");
+
+        assert_eq!(
+            result,
+            notes_dir
+                .canonicalize()
+                .expect("canonicalize notes dir")
+                .join("new.md")
+        );
+    }
 }
