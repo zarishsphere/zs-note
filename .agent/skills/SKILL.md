@@ -7,7 +7,7 @@ description: Use when writing implementation code for ZarishNote from the bluepr
 
 Use this skill when the user asks you to write, scaffold, or implement any part of the ZarishNote application based on the blueprint specifications.
 
-## Key reference documents
+## Key reference documents inside the `/docs` directory 
 
 | File | What it covers |
 |---|---|
