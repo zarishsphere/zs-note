@@ -35,7 +35,9 @@ pub enum FileEntry {
 pub struct ChatMessage {
     pub role: ChatRole,
     pub content: String,
+    #[serde(default = "chrono::Utc::now")]
     pub timestamp: chrono::DateTime<chrono::Utc>,
+    #[serde(default)]
     pub model: Option<String>,
 }
 
