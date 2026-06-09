@@ -64,7 +64,9 @@ export async function aiListModels(provider: string): Promise<string[]> {
 }
 
 export async function testProviderConnection(
-  provider: ProviderConfig,
+  provider: ProviderConfig | string,
 ): Promise<boolean> {
-  return invoke('test_provider_connection', { provider });
+  return invoke('test_provider_connection', {
+    provider: typeof provider === 'string' ? provider : provider.id,
+  });
 }

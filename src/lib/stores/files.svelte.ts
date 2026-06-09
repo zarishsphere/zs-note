@@ -1,4 +1,4 @@
-import type { FileEntry, SearchResult } from '../types';
+import type { FileEntry, RecentFile, SearchResult } from '../types';
 import * as editorCommands from '../commands/editor';
 
 /* ── File tree state ── */
@@ -6,7 +6,7 @@ let fileTree = $state<FileEntry[]>([]);
 let tags = $state<string[]>([]);
 let searchQuery = $state('');
 let searchResults = $state<SearchResult[]>([]);
-let recentFiles = $state<FileEntry[]>([]);
+let recentFiles = $state<RecentFile[]>([]);
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 let selectedFilePath = $state<string | null>(null);
@@ -113,7 +113,7 @@ function countEntries(entries: FileEntry[]): number {
 
 function loadTags(): void {
   editorCommands.getTags()
-    .then((t) => { tags = t; })
+    .then((tagNames: string[]) => { tags = tagNames; })
     .catch(() => {});
 }
 
@@ -140,6 +140,67 @@ function searchFiles(query: string): void {
       .then((results) => { searchResults = results; })
       .catch(() => { searchResults = []; });
   }, 300);
+}
+
+
+function normalizeVaultRelativePath(path: string): string {
+  const trimmed = path.trim().replace(/\\/g, '/');
+  if (!trimmed) {
+    throw new Error('Path is required');
+  }
+  if (trimmed.startsWith('/') || /^[a-zA-Z]:\//.test(trimmed) || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    throw new Error('Path must be vault-relative');
+  }
+
+  const parts: string[] = [];
+  for (const part of trimmed.split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') {
+      throw new Error('Path must stay inside the vault');
+    }
+    parts.push(part);
+  }
+
+  if (parts.length === 0) {
+    throw new Error('Path is required');
+  }
+  return parts.join('/');
+}
+
+function findFileEntry(entries: FileEntry[], path: string): FileEntry | undefined {
+  for (const entry of entries) {
+    let entryPath: string | undefined;
+    try {
+      entryPath = normalizeVaultRelativePath(entry.path);
+    } catch {
+      entryPath = undefined;
+    }
+
+    if (entryPath === path) {
+      return entry;
+    }
+    if (entry.children) {
+      const match = findFileEntry(entry.children, path);
+      if (match) return match;
+    }
+  }
+  return undefined;
+}
+
+function validateMove(oldPath: string, newPath: string): { oldPath: string; newPath: string } {
+  const normalizedOldPath = normalizeVaultRelativePath(oldPath);
+  const normalizedNewPath = normalizeVaultRelativePath(newPath);
+
+  if (normalizedOldPath === normalizedNewPath) {
+    throw new Error('Cannot move a file or folder to the same path');
+  }
+
+  const sourceEntry = findFileEntry(fileTree, normalizedOldPath);
+  if (sourceEntry?.is_dir && normalizedNewPath.startsWith(`${normalizedOldPath}/`)) {
+    throw new Error('Cannot move a folder into itself or one of its descendants');
+  }
+
+  return { oldPath: normalizedOldPath, newPath: normalizedNewPath };
 }
 
 function createFile(path: string): Promise<void> {
@@ -172,6 +233,20 @@ function duplicateFileEntry(path: string): Promise<void> {
     .catch((err) => { error = String(err); throw err; });
 }
 
+function moveFileEntry(oldPath: string, newPath: string): Promise<void> {
+  let move;
+  try {
+    move = validateMove(oldPath, newPath);
+  } catch (err) {
+    error = String(err);
+    return Promise.reject(err);
+  }
+
+  return editorCommands.moveFile(move.oldPath, move.newPath)
+    .then(() => { coalescedWatch(move.newPath); })
+    .catch((err) => { error = String(err); throw err; });
+}
+
 function selectFile(path: string): void {
   selectedFilePath = path;
 }
@@ -196,6 +271,7 @@ export function getFilesStore() {
     createFolder,
     deleteFile: deleteFileEntry,
     renameFile: renameFileEntry,
+    moveFile: moveFileEntry,
     duplicateFile: duplicateFileEntry,
     selectFile,
   };
