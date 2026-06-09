@@ -56,29 +56,29 @@ pub fn list_files(
             continue;
         }
 
-        if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-            entries.push(FileEntry::Folder {
-                name,
-                path,
-                children: Vec::new(),
-            });
+        let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
+        let relative_path = vault_relative_path(&state.vault_path, &path)?;
+        let extension = if is_dir {
+            None
         } else {
-            entries.push(FileEntry::File { name, path });
-        }
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| ext.to_string())
+        };
+
+        entries.push(FileEntry {
+            name,
+            path: relative_path,
+            is_dir,
+            children: is_dir.then(Vec::new),
+            extension,
+        });
     }
 
     entries.sort_by(|a, b| {
-        let a_is_folder = matches!(a, FileEntry::Folder { .. });
-        let b_is_folder = matches!(b, FileEntry::Folder { .. });
-        b_is_folder.cmp(&a_is_folder).then_with(|| {
-            let a_name = match a {
-                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
-            };
-            let b_name = match b {
-                FileEntry::File { name, .. } | FileEntry::Folder { name, .. } => name.clone(),
-            };
-            a_name.to_lowercase().cmp(&b_name.to_lowercase())
-        })
+        b.is_dir
+            .cmp(&a.is_dir)
+            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });
 
     Ok(entries)

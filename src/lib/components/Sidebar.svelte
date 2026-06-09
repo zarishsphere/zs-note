@@ -3,6 +3,7 @@
   import { getEditorStore } from '../stores/editor.svelte';
   import FileTree from './FileTree.svelte';
   import ImportDialog from './ImportDialog.svelte';
+  import { toVaultRelativePath } from '../utils/vaultPath';
 
   const files = getFilesStore();
   const editor = getEditorStore();
@@ -17,7 +18,7 @@
   function handleNewFile() {
     const name = prompt('File name:');
     if (name) {
-      files.createFile(name);
+      files.createFile(toVaultRelativePath(name));
     }
   }
 
@@ -112,8 +113,9 @@
               entries={files.fileTree}
               selectedPath={files.selectedFilePath}
               onSelect={(path) => {
-                files.selectFile(path);
-                editor.openFile(path);
+                const relativePath = toVaultRelativePath(path);
+                files.selectFile(relativePath);
+                editor.openFile(relativePath);
               }}
             />
           {/if}
