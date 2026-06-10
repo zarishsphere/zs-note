@@ -56,10 +56,7 @@ impl MarketplaceRegistry {
             .context("Failed to fetch marketplace listing")?;
 
         if !resp.status().is_success() {
-            bail!(
-                "Marketplace returned HTTP {}",
-                resp.status().as_u16()
-            );
+            bail!("Marketplace returned HTTP {}", resp.status().as_u16());
         }
 
         let entries: Vec<MarketplaceEntry> = resp
@@ -142,11 +139,10 @@ impl MarketplaceRegistry {
 
         if let Some(arr) = mcp_entry.as_array_mut() {
             // Avoid duplicate installs
-            if !arr.iter().any(|v| {
-                v.get("marketplaceId")
-                    .and_then(|id| id.as_str())
-                    == Some(&entry.id)
-            }) {
+            if !arr
+                .iter()
+                .any(|v| v.get("marketplaceId").and_then(|id| id.as_str()) == Some(&entry.id))
+            {
                 arr.push(server_config);
                 info!("Installed MCP server '{}' from marketplace", entry.name);
             } else {
@@ -224,10 +220,7 @@ impl MarketplaceRegistry {
             .and_then(|v| v.as_array_mut())
         {
             arr.retain(|entry| {
-                entry
-                    .get("marketplaceId")
-                    .and_then(|id| id.as_str())
-                    != Some(server_id)
+                entry.get("marketplaceId").and_then(|id| id.as_str()) != Some(server_id)
             });
             info!("Uninstalled MCP server '{}' from marketplace", server_id);
         }
@@ -243,11 +236,7 @@ impl MarketplaceRegistry {
             .and_then(|v| v.as_array())?;
 
         for entry in mcp_servers {
-            if entry
-                .get("marketplaceId")
-                .and_then(|id| id.as_str())
-                == Some(server_id)
-            {
+            if entry.get("marketplaceId").and_then(|id| id.as_str()) == Some(server_id) {
                 return entry
                     .get("version")
                     .and_then(|v| v.as_str())

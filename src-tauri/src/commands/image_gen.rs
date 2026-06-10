@@ -3,9 +3,9 @@
 //! Supports DALL-E 3, DALL-E 2, and Stability AI image generation APIs.
 //! Generated images are returned as base64-encoded strings.
 
-use tauri::State;
 use reqwest::Client;
 use serde_json::Value;
+use tauri::State;
 
 use crate::types::{AppState, GeneratedImage};
 
@@ -24,12 +24,7 @@ pub async fn generate_image(
     quality: String,
 ) -> Result<GeneratedImage, String> {
     let config = state.config.read().await;
-    let api_key = config
-        .ai
-        .api_key
-        .as_deref()
-        .unwrap_or("")
-        .to_string();
+    let api_key = config.ai.api_key.as_deref().unwrap_or("").to_string();
     drop(config);
 
     if api_key.is_empty() {
@@ -39,7 +34,10 @@ pub async fn generate_image(
     match model.as_str() {
         "dall-e-3" | "dall-e-2" => generate_dalle(&api_key, &prompt, &model, &size, &quality).await,
         "stability-ai" => generate_stability(&api_key, &prompt, &size).await,
-        _ => Err(format!("Unsupported image model: {}. Supported: dall-e-3, dall-e-2, stability-ai", model)),
+        _ => Err(format!(
+            "Unsupported image model: {}. Supported: dall-e-3, dall-e-2, stability-ai",
+            model
+        )),
     }
 }
 
@@ -178,7 +176,10 @@ async fn generate_stability(
 fn parse_size(size: &str) -> Result<(u32, u32), String> {
     let parts: Vec<&str> = size.split('x').collect();
     if parts.len() != 2 {
-        return Err(format!("Invalid size format '{}'. Expected WxH (e.g. 1024x1024)", size));
+        return Err(format!(
+            "Invalid size format '{}'. Expected WxH (e.g. 1024x1024)",
+            size
+        ));
     }
     let width = parts[0]
         .parse::<u32>()

@@ -112,17 +112,17 @@ fn find_whisper_model(custom_path: Option<&str>) -> Result<PathBuf, String> {
         if pb.is_file() {
             return Ok(pb);
         }
-        return Err(format!(
-            "Whisper model not found at custom path '{}'",
-            p
-        ));
+        return Err(format!("Whisper model not found at custom path '{}'", p));
     }
 
     // 2 — environment variable
     if let Ok(env_path) = std::env::var("ZARISHNOTE_WHISPER_MODEL") {
         let pb = PathBuf::from(&env_path);
         if pb.is_file() {
-            tracing::info!("Using whisper model from ZARISHNOTE_WHISPER_MODEL: {}", env_path);
+            tracing::info!(
+                "Using whisper model from ZARISHNOTE_WHISPER_MODEL: {}",
+                env_path
+            );
             return Ok(pb);
         }
         tracing::warn!(
@@ -302,9 +302,8 @@ fn transcribe_wav_file(
         .map(|n| n.get())
         .unwrap_or(4) as std::ffi::c_int;
 
-    let mut params = whisper_rs::FullParams::new(whisper_rs::SamplingStrategy::Greedy {
-        best_of: 1,
-    });
+    let mut params =
+        whisper_rs::FullParams::new(whisper_rs::SamplingStrategy::Greedy { best_of: 1 });
     params.set_n_threads(n_threads);
     params.set_language(Some("en"));
     params.set_print_special(false);
@@ -333,9 +332,9 @@ fn transcribe_wav_file(
 
     // -- language detection --
     let language = match state.full_lang_id_from_state() {
-        Ok(lang_id) if lang_id >= 0 => {
-            whisper_rs::get_lang_str(lang_id).unwrap_or("en").to_string()
-        }
+        Ok(lang_id) if lang_id >= 0 => whisper_rs::get_lang_str(lang_id)
+            .unwrap_or("en")
+            .to_string(),
         _ => "en".to_string(),
     };
 
@@ -392,10 +391,8 @@ pub fn voice_start_recording(_state: State<'_, AppState>) -> Result<String, Stri
     );
 
     // ---- temp file ----
-    let file_path = std::env::temp_dir().join(format!(
-        "zarishnote_rec_{}.wav",
-        uuid::Uuid::new_v4()
-    ));
+    let file_path =
+        std::env::temp_dir().join(format!("zarishnote_rec_{}.wav", uuid::Uuid::new_v4()));
 
     // ---- shared state for the callback ----
     let buffer: Arc<Mutex<Vec<f32>>> = Arc::new(Mutex::new(Vec::with_capacity(4096)));
@@ -424,7 +421,9 @@ pub fn voice_start_recording(_state: State<'_, AppState>) -> Result<String, Stri
         )
         .map_err(|e| format!("Failed to build audio stream: {}", e))?;
 
-    stream.play().map_err(|e| format!("Failed to start stream: {}", e))?;
+    stream
+        .play()
+        .map_err(|e| format!("Failed to start stream: {}", e))?;
 
     // ---- persist state (thread-local) ----
     let recording = ActiveRecording {
@@ -652,12 +651,22 @@ pub fn voice_process_command(
     let (command_type, parameters) = if lower.contains("save") {
         ("save".into(), std::collections::HashMap::new())
     } else if lower.contains("search") {
-        let query = text.splitn(2, "search").nth(1).unwrap_or("").trim().to_string();
+        let query = text
+            .splitn(2, "search")
+            .nth(1)
+            .unwrap_or("")
+            .trim()
+            .to_string();
         let mut params = std::collections::HashMap::new();
         params.insert("query".into(), query);
         ("search".into(), params)
     } else if lower.contains("open") {
-        let file = text.splitn(2, "open").nth(1).unwrap_or("").trim().to_string();
+        let file = text
+            .splitn(2, "open")
+            .nth(1)
+            .unwrap_or("")
+            .trim()
+            .to_string();
         let mut params = std::collections::HashMap::new();
         params.insert("file".into(), file);
         ("open".into(), params)

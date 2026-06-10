@@ -315,7 +315,9 @@ fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, Str
         .unwrap_or_else(|_| vault_root.to_path_buf());
     let cleaned = user_path.trim_start_matches('/');
     let candidate = vault.join(cleaned);
-    let canonical = candidate.canonicalize().unwrap_or(candidate);
+    let canonical = candidate
+        .canonicalize()
+        .unwrap_or_else(|_| candidate.clone());
     if !canonical.starts_with(&vault) {
         return Err("Path traversal detected".into());
     }
@@ -336,7 +338,7 @@ fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, Str
     let canonical_parent = existing_parent
         .canonicalize()
         .map_err(|e| format!("Failed to resolve path: {}", e))?;
-    if !canonical_parent.starts_with(&canonical_root) {
+    if !canonical_parent.starts_with(&vault) {
         return Err("Path traversal detected".into());
     }
 
@@ -346,6 +348,18 @@ fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, Str
     }
 
     Ok(resolved)
+}
+
+fn vault_relative_path(vault_root: &Path, path: &Path) -> Result<String, String> {
+    let relative = path
+        .strip_prefix(vault_root)
+        .map_err(|_| "Path is outside vault".to_string())?;
+
+    Ok(relative
+        .components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/"))
 }
 
 fn has_windows_prefix(path: &str) -> bool {

@@ -48,6 +48,8 @@ parking_lot = "0.12"
 tracing-appender = "0.2"
 base64 = "0.22"
 keyring = "3"
+lancedb = "0.18"
+fastembed = "4"
 
 quick-xml = "0.39"
 regex-lite = "0.1"

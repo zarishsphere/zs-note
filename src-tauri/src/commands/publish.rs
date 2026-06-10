@@ -3,15 +3,15 @@ use std::sync::{LazyLock, Mutex};
 
 use base64::Engine;
 use chrono::Utc;
-use quick_xml::events::{BytesCData, BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Writer;
+use quick_xml::events::{BytesCData, BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 use reqwest::Client;
 use serde_json::Value;
 use tauri::State;
 use uuid::Uuid;
 
-use crate::types::*;
 use crate::AppState;
+use crate::types::*;
 
 // ---------------------------------------------------------------------------
 // In-memory publication history (persisted to .znrc in a real build)
@@ -33,7 +33,10 @@ pub async fn publish_now(
         "github" => publish_to_github(&state, &target, &file_path, &options).await,
         "custom_api" => publish_to_custom_api(&target, &file_path, &options).await,
         "rss" => generate_rss_feed(&state, &target, &file_path, &options).await,
-        _ => Err(format!("Unknown publish target type: {}", target.target_type)),
+        _ => Err(format!(
+            "Unknown publish target type: {}",
+            target.target_type
+        )),
     }
 }
 
@@ -61,7 +64,10 @@ pub async fn upload_image(
     _target_id: String,
 ) -> Result<String, String> {
     let config = state.config.read().await;
-    let image_host = config.image_host.as_ref().ok_or("No image host configured")?;
+    let image_host = config
+        .image_host
+        .as_ref()
+        .ok_or("No image host configured")?;
 
     match image_host.host_type {
         ImageHostType::GitHub => upload_to_github(image_host, &file_path).await,
@@ -73,7 +79,10 @@ pub async fn upload_image(
 // generate_rss – standalone RSS feed generation from vault content
 // ---------------------------------------------------------------------------
 #[tauri::command]
-pub async fn generate_rss(state: State<'_, AppState>, _target_id: String) -> Result<String, String> {
+pub async fn generate_rss(
+    state: State<'_, AppState>,
+    _target_id: String,
+) -> Result<String, String> {
     let vault_path = state.vault_path.clone();
     let mut entries = Vec::new();
 
@@ -92,7 +101,12 @@ pub async fn generate_rss(state: State<'_, AppState>, _target_id: String) -> Res
             let title = frontmatter
                 .get("title")
                 .and_then(|v| v.as_str())
-                .unwrap_or(path.file_stem().unwrap_or_default().to_str().unwrap_or("Untitled"))
+                .unwrap_or(
+                    path.file_stem()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or("Untitled"),
+                )
                 .to_string();
 
             let date_str = frontmatter
@@ -220,11 +234,7 @@ fn apply_publish_transforms(
 }
 
 /// Build an RSS 2.0 XML string from vault entries.
-fn build_rss_xml(
-    title: &str,
-    link: &str,
-    entries: &[RssEntry],
-) -> Result<String, String> {
+fn build_rss_xml(title: &str, link: &str, entries: &[RssEntry]) -> Result<String, String> {
     let mut writer = Writer::new_with_indent(Vec::new(), b' ', 2);
 
     // XML declaration
@@ -270,16 +280,8 @@ fn build_rss_xml(
             .map_err(|e| format!("XML write error: {}", e))?;
 
         write_text_element(&mut writer, "title", &entry.title)?;
-        write_text_element(
-            &mut writer,
-            "link",
-            &format!("{}/{}", link, entry.path),
-        )?;
-        write_text_element(
-            &mut writer,
-            "guid",
-            &format!("{}/{}", link, entry.path),
-        )?;
+        write_text_element(&mut writer, "link", &format!("{}/{}", link, entry.path))?;
+        write_text_element(&mut writer, "guid", &format!("{}/{}", link, entry.path))?;
 
         // Date (RFC 2822)
         if !entry.date.is_empty() {
@@ -300,11 +302,7 @@ fn build_rss_xml(
         }
 
         // Description (first 500 chars of body)
-        let description = entry
-            .content
-            .chars()
-            .take(500)
-            .collect::<String>();
+        let description = entry.content.chars().take(500).collect::<String>();
         write_text_element(&mut writer, "description", &description)?;
 
         // content:encoded with full body (CDATA)
@@ -334,16 +332,11 @@ fn build_rss_xml(
         .write_event(Event::End(BytesEnd::new("rss")))
         .map_err(|e| format!("XML write error: {}", e))?;
 
-    String::from_utf8(writer.into_inner())
-        .map_err(|e| format!("UTF-8 conversion error: {}", e))
+    String::from_utf8(writer.into_inner()).map_err(|e| format!("UTF-8 conversion error: {}", e))
 }
 
 /// Write a simple text element: <name>value</name>
-fn write_text_element(
-    writer: &mut Writer<Vec<u8>>,
-    name: &str,
-    value: &str,
-) -> Result<(), String> {
+fn write_text_element(writer: &mut Writer<Vec<u8>>, name: &str, value: &str) -> Result<(), String> {
     writer
         .write_event(Event::Start(BytesStart::new(name)))
         .map_err(|e| format!("XML write error: {}", e))?;
@@ -397,10 +390,7 @@ async fn publish_to_github(
         .await
         .map_err(|e| format!("Failed to restore content: {}", e))?;
 
-    let repo_url = target
-        .repo
-        .clone()
-        .unwrap_or_else(|| "unknown".to_string());
+    let repo_url = target.repo.clone().unwrap_or_else(|| "unknown".to_string());
 
     // Record publication
     let record = PublicationRecord {
@@ -534,7 +524,12 @@ async fn generate_rss_feed(
             let title = frontmatter
                 .get("title")
                 .and_then(|v| v.as_str())
-                .unwrap_or(path.file_stem().unwrap_or_default().to_str().unwrap_or("Untitled"))
+                .unwrap_or(
+                    path.file_stem()
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap_or("Untitled"),
+                )
                 .to_string();
 
             let date_str = frontmatter
@@ -603,10 +598,7 @@ async fn generate_rss_feed(
 // ===========================================================================
 
 /// Upload an image to a GitHub repo via the Contents API.
-async fn upload_to_github(
-    host: &ImageHost,
-    file_path: &str,
-) -> Result<String, String> {
+async fn upload_to_github(host: &ImageHost, file_path: &str) -> Result<String, String> {
     let token = host
         .token
         .as_deref()
@@ -678,10 +670,7 @@ async fn upload_to_github(
 }
 
 /// Upload an image to Cloudflare Images API.
-async fn upload_to_cloudflare(
-    host: &ImageHost,
-    file_path: &str,
-) -> Result<String, String> {
+async fn upload_to_cloudflare(host: &ImageHost, file_path: &str) -> Result<String, String> {
     let account_id = host
         .account_id
         .as_deref()

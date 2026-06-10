@@ -1,0 +1,53 @@
+PR Summary:
+[1;37m[[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/implement-file-drag-and-drop-backend-move"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 25[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Wire file tree drag-and-drop moves"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/refactor-ai-client-provider-configuration"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 24[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"fix(ai): use configured provider records"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/unify-ai-chat-command-contract"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 23[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Unify AI chat streaming contract"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/add-taginfo-support-for-ui-behavior"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 22[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Return tag names from get_tags"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/update-recent-files-response-shape-ysgeny"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 21[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Use shared response shape for recent files"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/update-recent-files-response-shape"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 20[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Use shared response shape for recent files"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/add-path-validation-for-filesystem-writes-2ax56n"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 19[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Harden vault path validation"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/add-path-validation-for-filesystem-writes"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 18[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Harden vault path validation"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/normalize-editor-command-paths"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 17[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"Normalize editor paths to vault-relative values"[m
+  [1;37m}[m[1;37m,[m
+  [1;37m{[m
+    [1;34m"headRefName"[m[1;37m:[m [32m"codex/refactor-settings-to-use-backend-commands"[m[1;37m,[m
+    [1;34m"number"[m[1;37m:[m 16[1;37m,[m
+    [1;34m"title"[m[1;37m:[m [32m"fix(settings): wire frontend to backend config commands and use full-config save"[m
+  [1;37m}[m
+[1;37m][m

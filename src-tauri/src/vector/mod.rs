@@ -72,7 +72,10 @@ impl VectorStore {
     pub fn enable_embeddings(&self, enabled: bool) {
         let mut e = self.embeddings_enabled.write();
         *e = enabled;
-        info!("Embeddings {}", if enabled { "enabled" } else { "disabled" });
+        info!(
+            "Embeddings {}",
+            if enabled { "enabled" } else { "disabled" }
+        );
     }
 
     /// Check if embeddings are enabled.
@@ -456,7 +459,11 @@ mod tests {
         let sim = cosine_similarity(&a, &b);
         // dot = 4+10+18 = 32, |a| = sqrt(14), |b| = sqrt(77)
         // sim = 32 / (sqrt(14) * sqrt(77)) = 32 / sqrt(1078) ≈ 32 / 32.832 ≈ 0.9746
-        assert!((sim - 0.9746).abs() < 0.001, "Expected ~0.9746, got {}", sim);
+        assert!(
+            (sim - 0.9746).abs() < 0.001,
+            "Expected ~0.9746, got {}",
+            sim
+        );
     }
 
     #[test]
@@ -487,7 +494,11 @@ mod tests {
         let store = VectorStore::new(Path::new("/tmp/test_emb2"));
         let emb = store.fallback_embedding("test vector").unwrap();
         let norm: f32 = emb.iter().map(|x| x * x).sum::<f32>().sqrt();
-        assert!((norm - 1.0).abs() < 0.001, "Expected normalized (norm~1), got {}", norm);
+        assert!(
+            (norm - 1.0).abs() < 0.001,
+            "Expected normalized (norm~1), got {}",
+            norm
+        );
     }
 
     #[test]
@@ -502,6 +513,9 @@ mod tests {
         let store = VectorStore::new(Path::new("/tmp/test_emb4"));
         let emb1 = store.fallback_embedding("apple").unwrap();
         let emb2 = store.fallback_embedding("orange").unwrap();
-        assert_ne!(emb1, emb2, "Different inputs should produce different embeddings");
+        assert_ne!(
+            emb1, emb2,
+            "Different inputs should produce different embeddings"
+        );
     }
 }

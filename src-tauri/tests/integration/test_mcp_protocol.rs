@@ -4,10 +4,10 @@
 
 use serde_json::json;
 use zs_note_lib::mcp::protocol::{
-    create_call_tool_request, create_initialize_request, create_list_tools_request,
-    parse_jsonrpc_message, JsonRpcMessage,
+    JsonRpcMessage, create_call_tool_request, create_initialize_request, create_list_tools_request,
+    parse_jsonrpc_message,
 };
-use zs_note_lib::mcp::router::{route_ai_tool_call, ConfirmationRule, McpToolRouter, RouteConfig};
+use zs_note_lib::mcp::router::{ConfirmationRule, McpToolRouter, RouteConfig, route_ai_tool_call};
 
 // ---------------------------------------------------------------------------
 // Parse JSON‑RPC requests

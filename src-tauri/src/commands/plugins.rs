@@ -53,8 +53,8 @@ fn plugin_manifest_path(vault_path: &std::path::Path, id: &str) -> PathBuf {
 
 /// Read and parse a plugin manifest from disk.
 fn read_manifest(manifest_path: &std::path::Path) -> Result<PluginManifest, String> {
-    let contents =
-        std::fs::read_to_string(manifest_path).map_err(|e| format!("Failed to read manifest: {}", e))?;
+    let contents = std::fs::read_to_string(manifest_path)
+        .map_err(|e| format!("Failed to read manifest: {}", e))?;
     toml::from_str::<PluginManifest>(&contents)
         .map_err(|e| format!("Failed to parse plugin.toml: {}", e))
 }
@@ -175,11 +175,14 @@ pub fn plugin_install(path: String, state: State<'_, AppState>) -> Result<Plugin
     std::fs::copy(manifest_path, &dest_manifest)
         .map_err(|e| format!("Failed to copy manifest: {}", e))?;
 
-    info!("Installed plugin '{}' from {:?}", manifest.name, source_path);
+    info!(
+        "Installed plugin '{}' from {:?}",
+        manifest.name, source_path
+    );
 
     // Validate with sandbox engine
-    let wasm_bytes = std::fs::read(&dest_wasm)
-        .map_err(|e| format!("Failed to read installed WASM: {}", e))?;
+    let wasm_bytes =
+        std::fs::read(&dest_wasm).map_err(|e| format!("Failed to read installed WASM: {}", e))?;
     state
         .sandbox
         .test_module(&wasm_bytes)
@@ -234,13 +237,11 @@ pub fn plugin_list(state: State<'_, AppState>) -> Result<Vec<PluginInfo>, String
             continue;
         }
 
-        let plugin_id = entry
-            .file_name()
-            .to_string_lossy()
-            .to_string();
+        let plugin_id = entry.file_name().to_string_lossy().to_string();
         match read_manifest(&manifest_path) {
             Ok(manifest) => {
-                let enabled = enabled_set.contains(&plugin_id) || enabled_set.contains(&manifest.id);
+                let enabled =
+                    enabled_set.contains(&plugin_id) || enabled_set.contains(&manifest.id);
                 plugins.push(manifest_to_info(&state.vault_path, manifest, enabled));
             }
             Err(e) => {
@@ -278,8 +279,8 @@ pub fn plugin_get_info(id: String, state: State<'_, AppState>) -> Result<PluginI
 pub async fn marketplace_fetch(
     registry_url: Option<String>,
 ) -> Result<Vec<MarketplaceEntry>, String> {
-    let url = registry_url
-        .unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
+    let url =
+        registry_url.unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
     let mut registry = crate::mcp::marketplace::MarketplaceRegistry::new(&url);
     registry
         .fetch_servers()
@@ -294,8 +295,8 @@ pub async fn marketplace_install(
     registry_url: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<MarketplaceEntry, String> {
-    let url = registry_url
-        .unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
+    let url =
+        registry_url.unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
     let mut registry = crate::mcp::marketplace::MarketplaceRegistry::new(&url);
 
     // Fetch fresh listing
@@ -304,9 +305,7 @@ pub async fn marketplace_install(
         .await
         .map_err(|e| format!("Failed to fetch marketplace: {}", e))?;
 
-    let mut config = state
-        .config
-        .blocking_write();
+    let mut config = state.config.blocking_write();
 
     registry
         .install_server(server_id, &mut config)
@@ -320,8 +319,8 @@ pub async fn marketplace_check_updates(
     registry_url: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<Vec<crate::mcp::marketplace::UpdateInfo>, String> {
-    let url = registry_url
-        .unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
+    let url =
+        registry_url.unwrap_or_else(|| "https://marketplace.zarishsphere.com/api/mcp".to_string());
     let registry = crate::mcp::marketplace::MarketplaceRegistry::new(&url);
 
     let config = state.config.blocking_read();
@@ -334,9 +333,7 @@ pub async fn marketplace_check_updates(
 /// Uninstall an MCP server that was installed from the marketplace.
 #[tauri::command]
 pub fn marketplace_uninstall(server_id: String, state: State<'_, AppState>) -> Result<(), String> {
-    let mut config = state
-        .config
-        .blocking_write();
+    let mut config = state.config.blocking_write();
     crate::mcp::marketplace::MarketplaceRegistry::uninstall_server(&server_id, &mut config)
         .map_err(|e| format!("Failed to uninstall server: {}", e))
 }
