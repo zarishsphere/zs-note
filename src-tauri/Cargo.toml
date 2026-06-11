@@ -3,7 +3,7 @@ name = "zs-note"
 version = "0.1.0"
 description = "ZarishNote — a modern note-taking application with sandboxed code execution"
 authors = ["Mohammad Ariful Islam <zarishsphere@gmail.com>"]
-edition = "2024"
+edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "2.6", features = [] }
