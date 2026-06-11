@@ -6,7 +6,7 @@ pub mod transport;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use serde_json::Value;
 use tokio::sync::RwLock;
 use tracing::info;

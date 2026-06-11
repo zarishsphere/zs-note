@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use git2::{Cred, FetchOptions, PushOptions, RemoteCallbacks};
 use tokio::sync::Mutex;
 use tracing::info;

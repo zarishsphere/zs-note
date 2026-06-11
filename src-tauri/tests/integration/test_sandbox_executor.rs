@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use zs_note_lib::sandbox::capability::{CapabilityChecker, glob_match, resolve_virtual_path};
+use zs_note_lib::sandbox::capability::{glob_match, resolve_virtual_path, CapabilityChecker};
 use zs_note_lib::sandbox::network::SandboxNetworkProxy;
 
 // ---------------------------------------------------------------------------

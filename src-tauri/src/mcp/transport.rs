@@ -1,11 +1,11 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use async_trait::async_trait;
 use serde_json::Value;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 
-use crate::mcp::protocol::{JsonRpcMessage, JsonRpcRequest, parse_jsonrpc_message};
+use crate::mcp::protocol::{parse_jsonrpc_message, JsonRpcMessage, JsonRpcRequest};
 use crate::types::McpToolInfo;
 
 #[derive(Debug, Clone, PartialEq)]

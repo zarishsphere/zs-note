@@ -4,7 +4,7 @@ pub mod sync;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use chrono::{TimeZone, Utc};
 use git2::{DiffOptions, Oid, Repository, Signature, StatusOptions};
 

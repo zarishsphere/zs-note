@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::{Stream, StreamExt};
 use reqwest::Client;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use crate::ai::AIProvider;
 use crate::types::*;

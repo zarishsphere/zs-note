@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use zs_note_lib::vector::{VectorStore, index};
+use zs_note_lib::vector::{index, VectorStore};
 
 // ---------------------------------------------------------------------------
 // Helpers

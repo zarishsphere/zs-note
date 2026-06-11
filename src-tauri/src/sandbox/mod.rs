@@ -7,7 +7,7 @@ use thiserror::Error;
 use wasmtime::{Engine, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 
-use crate::logging::{SandboxAuditEntry, audit_log};
+use crate::logging::{audit_log, SandboxAuditEntry};
 use crate::types::ToolConfig;
 
 #[derive(Debug, Error)]

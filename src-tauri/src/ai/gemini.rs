@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::{Stream, StreamExt};
 use reqwest::Client;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use crate::ai::AIProvider;
 use crate::types::*;
@@ -125,9 +125,9 @@ impl AIProvider for GeminiProvider {
                     for line in text.lines() {
                         if let Some(data) = line.strip_prefix("data: ") {
                             if let Ok(json_data) = serde_json::from_str::<Value>(data) {
-                                if let Some(text_content) =
-                                    json_data["candidates"][0]["content"]["parts"][0]["text"]
-                                        .as_str()
+                                if let Some(text_content) = json_data["candidates"][0]["content"]
+                                    ["parts"][0]["text"]
+                                    .as_str()
                                 {
                                     return StreamEvent::Token {
                                         content: text_content.to_string(),

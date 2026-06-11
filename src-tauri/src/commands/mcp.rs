@@ -1,8 +1,8 @@
 use tauri::State;
 
-use crate::AppState;
 use crate::mcp::MCPClient;
 use crate::types::*;
+use crate::AppState;
 
 #[tauri::command]
 pub async fn mcp_list_servers(state: State<'_, AppState>) -> Result<Vec<McpServerInfo>, String> {
