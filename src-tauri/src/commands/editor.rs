@@ -362,6 +362,7 @@ fn vault_relative_path(vault_root: &Path, path: &Path) -> Result<String, String>
         .join("/"))
 }
 
+#[allow(dead_code)]
 fn has_windows_prefix(path: &str) -> bool {
     let bytes = path.as_bytes();
     bytes.len() >= 2
