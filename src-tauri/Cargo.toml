@@ -75,7 +75,7 @@ version = "0.13"
 optional = true
 
 [dependencies.rodio]
-version = "0.20"
+version = "0.22"
 optional = true
 
 [profile.release]
