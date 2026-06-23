@@ -64,36 +64,32 @@ pub fn sandbox_exec(
 #[tauri::command]
 pub fn sandbox_list_snapshots(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let config = state.config.blocking_read();
-    Ok(config.sandbox.tools.iter().map(|t| t.name.clone()).collect())
+    Ok(config
+        .sandbox
+        .tools
+        .iter()
+        .map(|t| t.name.clone())
+        .collect())
 }
 
 /// Placeholder: create a named snapshot (tool checkpoint).
 /// In V1 this records the current tool list under the given name.
 #[tauri::command]
-pub fn sandbox_create_snapshot(
-    _state: State<'_, AppState>,
-    name: String,
-) -> Result<(), String> {
+pub fn sandbox_create_snapshot(_state: State<'_, AppState>, name: String) -> Result<(), String> {
     tracing::info!("sandbox_create_snapshot: {} (stub)", name);
     Ok(())
 }
 
 /// Placeholder: restore a named snapshot.
 #[tauri::command]
-pub fn sandbox_restore_snapshot(
-    _state: State<'_, AppState>,
-    name: String,
-) -> Result<(), String> {
+pub fn sandbox_restore_snapshot(_state: State<'_, AppState>, name: String) -> Result<(), String> {
     tracing::info!("sandbox_restore_snapshot: {} (stub)", name);
     Ok(())
 }
 
 /// Placeholder: delete a named snapshot.
 #[tauri::command]
-pub fn sandbox_delete_snapshot(
-    _state: State<'_, AppState>,
-    name: String,
-) -> Result<(), String> {
+pub fn sandbox_delete_snapshot(_state: State<'_, AppState>, name: String) -> Result<(), String> {
     tracing::info!("sandbox_delete_snapshot: {} (stub)", name);
     Ok(())
 }

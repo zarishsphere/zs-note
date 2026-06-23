@@ -147,8 +147,7 @@ pub fn git_restore(
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create directories: {}", e))?;
     }
-    std::fs::write(&full_path, content)
-        .map_err(|e| format!("Failed to write file: {}", e))?;
+    std::fs::write(&full_path, content).map_err(|e| format!("Failed to write file: {}", e))?;
 
     drop(git);
 

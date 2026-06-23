@@ -33,12 +33,15 @@ fn parse_server(cfg: &serde_json::Value) -> McpServerInfo {
         .and_then(|v| v.as_str())
         .unwrap_or("stdio")
         .to_string();
-    let enabled = cfg
-        .get("enabled")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(true);
-    let command = cfg.get("command").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let url = cfg.get("url").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let enabled = cfg.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+    let command = cfg
+        .get("command")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let url = cfg
+        .get("url")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
     let args = cfg.get("args").and_then(|v| v.as_array()).map(|arr| {
         arr.iter()
             .filter_map(|v| v.as_str().map(|s| s.to_string()))
