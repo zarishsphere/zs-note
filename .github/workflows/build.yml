@@ -76,6 +76,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build (with retry)
+        shell: bash
         run: |
           for i in 1 2 3; do
             pnpm tauri build --bundles ${{ matrix.bundles }} && break
@@ -113,5 +114,4 @@ jobs:
             *.dmg
             *.msi
             *.exe
-            *.nupkg
           generate_release_notes: true
