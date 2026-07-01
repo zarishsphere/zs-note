@@ -75,6 +75,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build frontend
+        run: pnpm exec vite build
+
       - name: Build (with retry)
         shell: bash
         run: |
