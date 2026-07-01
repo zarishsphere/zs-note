@@ -101,7 +101,7 @@ impl VectorStore {
             }
         }
 
-        Ok(self.fallback_embedding(text)?)
+        self.fallback_embedding(text)
     }
 
     /// Generate embeddings for text that has no stored embedding yet.

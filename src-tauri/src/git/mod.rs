@@ -265,7 +265,7 @@ impl GitEngine {
                 Err(git2::Error::new(
                     git2::ErrorCode::GenericError,
                     git2::ErrorClass::Net,
-                    &format!("Push failed for {}: {}", refname, msg),
+                    format!("Push failed for {}: {}", refname, msg),
                 ))
             } else {
                 Ok(())

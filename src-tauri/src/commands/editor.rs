@@ -234,7 +234,7 @@ pub fn get_recent_files(state: State<'_, AppState>) -> Result<Vec<RecentFile>, S
         }
     }
 
-    files.sort_by(|a, b| b.1.cmp(&a.1));
+    files.sort_by_key(|b| std::cmp::Reverse(b.1));
     files
         .into_iter()
         .take(20)
@@ -284,6 +284,9 @@ fn normalize_vault_relative_path(user_path: &str) -> Result<PathBuf, String> {
     if raw.is_empty() {
         return Err("Path is required".into());
     }
+    if has_windows_prefix(raw) {
+        return Err("Path must be vault-relative".into());
+    }
 
     let path = Path::new(raw);
     if path.is_absolute() {
@@ -313,7 +316,8 @@ fn resolve_vault_path(vault_root: &Path, user_path: &str) -> Result<PathBuf, Str
     let vault = vault_root
         .canonicalize()
         .unwrap_or_else(|_| vault_root.to_path_buf());
-    let cleaned = user_path.trim_start_matches('/');
+    let normalized = normalize_vault_relative_path(user_path)?;
+    let cleaned = normalized.to_string_lossy().to_string();
     let candidate = vault.join(cleaned);
     let canonical = candidate
         .canonicalize()
@@ -362,7 +366,6 @@ fn vault_relative_path(vault_root: &Path, path: &Path) -> Result<String, String>
         .join("/"))
 }
 
-#[allow(dead_code)]
 fn has_windows_prefix(path: &str) -> bool {
     let bytes = path.as_bytes();
     bytes.len() >= 2

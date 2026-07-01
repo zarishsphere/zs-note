@@ -1,6 +1,6 @@
 [package]
 name = "zs-note"
-version = "0.1.0"
+version = "0.2.0"
 description = "ZarishNote — a modern note-taking application with sandboxed code execution"
 authors = ["Mohammad Ariful Islam <zarishsphere@gmail.com>"]
 edition = "2021"
@@ -34,8 +34,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream", "multipart"] }
 url = "2"
-wasmtime = "45"
-wasmtime-wasi = "45"
+wasmtime = "46"
+wasmtime-wasi = "46"
 git2 = "0.20"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
@@ -48,10 +48,9 @@ parking_lot = "0.12"
 tracing-appender = "0.2"
 base64 = "0.22"
 keyring = "3"
-lancedb = "0.18"
-fastembed = "4"
 
-quick-xml = "0.39"
+
+quick-xml = "0.40"
 regex-lite = "0.1"
 
 [dev-dependencies]

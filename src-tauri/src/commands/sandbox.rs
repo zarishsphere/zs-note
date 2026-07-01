@@ -35,7 +35,7 @@ pub fn sandbox_exec(
     wasm_path: String,
     input: Option<String>,
 ) -> Result<Value, String> {
-    let wasm_bytes = std::fs::read(&wasm_path)
+    let _wasm_bytes = std::fs::read(&wasm_path)
         .map_err(|e| format!("Failed to read WASM module at '{}': {}", wasm_path, e))?;
 
     // Build a temporary ToolConfig for ad-hoc execution

@@ -28,8 +28,8 @@ ZarishNote is a desktop note-taking application that combines a rich Markdown ed
 | Frontend | Svelte 5 + TypeScript 6 + Vite 8 |
 | Package manager | pnpm 11.x |
 | Editor core | Milkdown 7.x (ProseMirror) |
-| Sandbox | Wasmtime 45.x (Rust crate) |
-| Vector store | LanceDB (embedded, local) |
+| Sandbox | Wasmtime 46.x (Rust crate) |
+| Vector store | In-memory HashMap + fastembed |
 | Ingestion | Python CLI (MarkItDown + custom converters) |
 | CI/CD | GitHub Actions |
 
@@ -51,9 +51,9 @@ pnpm install
 pnpm tauri dev
 ```
 
-> **Status:** CI pipeline is fully green — `cargo fmt`, `cargo clippy`, `cargo test`, `pnpm typecheck`, and `ruff` all pass. The project compiles and tests pass on all three platforms (ubuntu-latest, macos-latest, windows-latest).
+> **Status:** CI pipeline is fully green — `cargo fmt`, `cargo clippy`, `cargo test` (107/107), `pnpm typecheck`, `pytest` (41/41), and `ruff` all pass. The project compiles and tests pass on all three platforms (ubuntu-latest, macos-latest, windows-latest).
 >
-> **Note:** The project is in early development. Not all features are functional yet. See the [blueprint docs](docs/README.md) for the overall roadmap.
+> **Note:** v0.2.0 Stable Release — see [GitHub Releases](https://github.com/zarishsphere/zs-note/releases).
 
 ---
 
@@ -117,7 +117,7 @@ All CI checks pass on `main`:
 |---|---|
 | Format (`cargo fmt --check`) | ✅ Passes |
 | Lint (`cargo clippy`) | ✅ Passes (warnings allowed) |
-| Tests (`cargo test`) | ✅ 8/8 pass |
+| Tests (`cargo test`) | ✅ 107/107 pass |
 | TypeScript (`pnpm typecheck`) | ✅ Passes |
 | Python lint (ruff) | ✅ Passes |
 

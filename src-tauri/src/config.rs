@@ -145,19 +145,12 @@ impl Default for KeyBindings {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct PluginsConfig {
     pub enabled: Vec<String>,
     pub settings: HashMap<String, serde_json::Value>,
 }
 
-impl Default for PluginsConfig {
-    fn default() -> Self {
-        Self {
-            enabled: Vec::new(),
-            settings: HashMap::new(),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoiceConfig {

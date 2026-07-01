@@ -101,7 +101,7 @@ impl SandboxEngine {
             error: None,
         });
 
-        Ok(match results.get(0) {
+        Ok(match results.first() {
             Some(wasmtime::Val::I64(val)) => val.to_string(),
             Some(wasmtime::Val::I32(val)) => val.to_string(),
             _ => "0".to_string(),

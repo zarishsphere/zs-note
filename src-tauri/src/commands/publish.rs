@@ -406,7 +406,7 @@ async fn publish_to_github(
         history.push(record.clone());
     }
 
-    Ok(serde_json::to_string(&record).map_err(|e| format!("Serialize error: {}", e))?)
+    serde_json::to_string(&record).map_err(|e| format!("Serialize error: {}", e))
 }
 
 /// Publish via HTTP POST to a custom API endpoint.
@@ -496,7 +496,7 @@ async fn publish_to_custom_api(
         history.push(record.clone());
     }
 
-    Ok(serde_json::to_string(&record).map_err(|e| format!("Serialize error: {}", e))?)
+    serde_json::to_string(&record).map_err(|e| format!("Serialize error: {}", e))
 }
 
 /// Generate RSS feed from vault content and optionally save to the vault.

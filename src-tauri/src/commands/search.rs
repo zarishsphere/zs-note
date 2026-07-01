@@ -96,7 +96,7 @@ pub fn search_files(
         }
     }
 
-    results.sort_by(|a, b| b.1.cmp(&a.1));
+    results.sort_by_key(|b| std::cmp::Reverse(b.1));
     Ok(results.into_iter().map(|(r, _)| r).take(50).collect())
 }
 
